@@ -73,7 +73,7 @@ export default function App() {
   const [userId, setUserId] = React.useState(null);
   const [isAuthReady, setIsAuthReady] = React.useState(false);
 
-  const appId = import.meta.env.VITE_FIREBASE_PROJECT_ID || 'queens-puzzle';
+  const appId = 'queens-puzzle';
 
   React.useEffect(() => {
     try {
