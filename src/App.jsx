@@ -138,7 +138,7 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
       if (currentUser) {
-        const permissionsDocRef = doc(firestoreDb, `artifacts/${appId}/private/config`, 'permissions');
+        const permissionsDocRef = doc(firestoreDb, `artifacts/${appId}/config`, 'permissions');
         try {
             const permissionsDoc = await getDoc(permissionsDocRef);
             if (permissionsDoc.exists() && permissionsDoc.data().allowedUsers.includes(currentUser.email)) {
