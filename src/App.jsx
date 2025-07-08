@@ -168,8 +168,8 @@ export default function App() {
   // Effect for Loading Data (only runs when the status changes to LOADING_DATA)
   useEffect(() => {
     if (appStatus !== 'LOADING_DATA' || !db) return;
-
-    const playersDocRef = doc(db, `artifacts/${appId}/public/data/config`, 'players');
+zzs
+    const playersDocRef = doc(db, `artifacts/${appId}/config`, 'players');
 
     // Listener for players
     const unsubPlayers = onSnapshot(playersDocRef, (doc) => {
