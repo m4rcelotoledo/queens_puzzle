@@ -1,22 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, logEvent } from "firebase/analytics";
-import {
-  getAuth,
-  onAuthStateChanged,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signOut,
-  getIdTokenResult
-} from 'firebase/auth';
-import {
-  getFirestore,
-  doc,
-  setDoc,
-  onSnapshot,
-  collection,
-  query
-} from 'firebase/firestore';
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, getIdTokenResult } from 'firebase/auth';
+import { getFirestore, doc, setDoc, onSnapshot, collection, query } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import DarkModeToggle from './components/DarkModeToggle';
@@ -24,6 +10,7 @@ import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import Notification from './components/Notification';
 import PlayerSetupModal from './components/PlayerSetupModal';
+import PlayerStatsPage from './components/PlayerStatsPage';
 import PodiumIcon from './components/PodiumIcon';
 import TimeInputForm from './components/TimeInputForm';
 
@@ -44,9 +31,10 @@ export default function App() {
   const [view, setView] = useState('daily');
   const [times, setTimes] = useState({});
   const [notification, setNotification] = useState({ message: '', type: '' });
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('darkMode') === 'true';
-  });
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
+
+  const [currentView, setCurrentView] = useState('scoreboard');
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
 
   const appId = 'queens-puzzle';
 
@@ -132,6 +120,52 @@ export default function App() {
       unsubScores();
     };
   }, [appStatus, db, isAllowed]);
+
+  const calculatePlayerStats = (playerName) => {
+    if (!scores || !playerName) return null;
+
+    let wins = 0;
+    let podiums = 0;
+    let bestTime = Infinity;
+    let totalTime = 0;
+    let gameCount = 0;
+    const timeHistory = [];
+
+    Object.values(scores).forEach(dayScore => {
+      const sortedDay = [...dayScore.results].sort((a, b) => a.totalTime - b.totalTime);
+      const playerResult = sortedDay.find(p => p.name === playerName);
+
+      if (playerResult && playerResult.totalTime > 0) {
+        const rank = sortedDay.indexOf(playerResult) + 1;
+        if (rank === 1) wins++;
+        if (rank <= 3) podiums++;
+
+        bestTime = Math.min(bestTime, playerResult.totalTime);
+        totalTime += playerResult.totalTime;
+        gameCount++;
+        timeHistory.push({
+          date: new Date(dayScore.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+          time: playerResult.totalTime
+        });
+      }
+    });
+
+    return {
+      name: playerName,
+      wins,
+      podiums,
+      bestTime: bestTime === Infinity ? 'N/A' : bestTime,
+      avgTime: gameCount > 0 ? (totalTime / gameCount).toFixed(0) : 'N/A',
+      timeHistory: timeHistory.sort((a,b) => new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-'))),
+    };
+  };
+
+  const playerStats = useMemo(() => calculatePlayerStats(selectedPlayer), [selectedPlayer, scores]);
+
+  const handlePlayerClick = (playerName) => {
+    setSelectedPlayer(playerName);
+    setCurrentView('playerStats');
+  };
 
   // --- Action Functions ---
   const handleLogin = async () => {
@@ -305,141 +339,142 @@ export default function App() {
   };
 
   // --- State-Based Rendering ---
-  if (appStatus === 'LOADING_AUTH') return <LoadingScreen message="Verificando autenticação" />;
-  if (appStatus === 'LOGIN') return <LoginScreen onLogin={handleLogin} error={authError} />;
-  if (appStatus === 'LOADING_DATA') return <LoadingScreen message="Carregando dados" />;
-  if (appStatus === 'SETUP_PLAYERS' && isAllowed) return <PlayerSetupModal onSetupComplete={handlePlayerSetup} />;
+  if (appStatus !== 'READY' || !user || !players) {
+    // Render loading/login/setup screens
+    if (appStatus === 'LOADING_AUTH') return <LoadingScreen message="Verificando autenticação" />;
+    if (appStatus === 'LOGIN') return <LoginScreen onLogin={handleLogin} error={authError} />;
+    if (appStatus === 'LOADING_DATA') return <LoadingScreen message="Carregando dados" />;
+    if (appStatus === 'SETUP_PLAYERS' && isAllowed) return <PlayerSetupModal onSetupComplete={handlePlayerSetup} />;
+    return <LoadingScreen message="Inicializando" />;
+  }
 
   // If appStatus is 'READY', render the main application
-  if (appStatus === 'READY' && user && players) {
-    return (
-      <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans p-4 sm:p-6 lg:p-8 transition-colors duration-300">
-        <AnimatePresence>
-          {notification.message && (
-            <Notification
-              message={notification.message}
-              type={notification.type}
-              onDismiss={() => setNotification({ message: '', type: '' })}
-            />
-          )}
-        </AnimatePresence>
-        <div className="max-w-6xl mx-auto">
-          <header className="text-center mb-8 relative">
+  return (
+    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans p-4 sm:p-6 lg:p-8 transition-colors duration-300">
+      <AnimatePresence>
+        {notification.message && <Notification message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: '' })} />}
+      </AnimatePresence>
+      <div className="max-w-6xl mx-auto">
+        <header className="flex justify-between items-center mb-8">
+          <div className="text-left">
             <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-gray-100">
-              🏆 Placar do Puzzle das Rainhas 👑
+              🏆 Placar do Puzzle 👑
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">Acompanhe os resultados e descubra quem é o mestre da semana!</p>
-            <div className="absolute top-0 right-0 flex items-center space-x-4">
-              <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
-              <div className="flex flex-col items-end">
-                <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full" />
-                <span className="text-xs text-gray-500 dark:text-gray-400">{user.displayName}</span>
-                <button onClick={handleLogout} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Sair</button>
-              </div>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">Acompanhe os mestres do tabuleiro!</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+            <div className="flex items-center space-x-2">
+              <img src={user.photoURL} alt={user.displayName} className="w-10 h-10 rounded-full" />
+              <button onClick={handleLogout} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Sair</button>
             </div>
-          </header>
+          </div>
+        </header>
 
-          <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-            {/* Left Column - VISIBLE TO EVERYONE */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5 }}
-              className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg"
-            >
-              {/* The title changes depending on the type of user. */}
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-                {isAllowed ? 'Registrar Tempos' : 'Explorar Datas'}
-              </h2>
-
-              {/* The date selector is VISIBLE TO EVERYONE */}
-              <div className="mb-4">
-                <label htmlFor="date-picker" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Selecione a Data
-                </label>
-                <input id="date-picker" type="date" value={dateString} onChange={(e) => setSelectedDate(new Date(e.target.value + 'T12:00:00'))} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
-              </div>
-
-              {/* HYBRID LOGIC: Displays the form for administrators or a message for members. */}
-              {isAllowed ? (
-                <TimeInputForm
-                  players={players}
-                  isSunday={isSunday}
-                  times={times}
-                  handleTimeChange={handleTimeChange}
-                  handleSaveScore={handleSaveScore}
-                  setTimes={setTimes}
-                />
-              ) : (
-                <div className="mt-6 text-center text-gray-500 dark:text-gray-400 p-4 border-t border-gray-200 dark:border-gray-700">
-                  <p>Você está no modo de visualização. Selecione uma data acima para ver o pódio do dia.</p>
-                </div>
-              )}
-            </motion.div>
-
-            <div className="lg:col-span-2">
+        <main>
+          <AnimatePresence mode="wait">
+            {/* CONDITIONAL RENDERING: EITHER THE SCORE OR THE STATISTICS */}
+            {currentView === 'scoreboard' ? (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="flex items-center justify-center space-x-2 mb-6 bg-white dark:bg-gray-800 p-2 rounded-full shadow-md"
+                key="scoreboard"
+                initial={{opacity: 0}}
+                animate={{opacity: 1}}
+                exit={{opacity: 0}}
+                className="grid grid-cols-1 lg:grid-cols-3 gap-8"
               >
-                <button onClick={() => setView('daily')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'daily' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-gray-700'}`}>Diário</button>
-                <button onClick={() => setView('weekly')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'weekly' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-gray-700'}`}>Semanal</button>
-                <button onClick={() => setView('monthly')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-gray-700'}`}>Mensal</button>
+                {/* Left Column - VISIBLE TO EVERYONE */}
+                <div className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+                    {isAllowed ? 'Registrar Tempos' : 'Explorar Datas'}
+                  </h2>
+
+                  <div className="mb-4">
+                    <label htmlFor="date-picker" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Selecione a Data
+                    </label>
+                    <input id="date-picker" type="date" value={dateString} onChange={(e) => setSelectedDate(new Date(e.target.value + 'T12:00:00'))} className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200" />
+                  </div>
+
+                  {isAllowed ? (
+                    <TimeInputForm
+                        players={players}
+                        isSunday={isSunday}
+                        times={times}
+                        handleTimeChange={handleTimeChange}
+                        handleSaveScore={handleSaveScore}
+                        setTimes={setTimes}
+                    />
+                  ) : (
+                    <div className="mt-6 text-center text-gray-500 dark:text-gray-400 p-4 border-t border-gray-200 dark:border-gray-700">
+                      <p>Você está no modo de visualização. Selecione uma data acima para ver o pódio do dia.</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Column - RESULTS */}
+                <div className="lg:col-span-2">
+                  <div className="flex items-center justify-center space-x-2 mb-6 bg-white dark:bg-gray-800 p-2 rounded-full shadow-md">
+                    <button onClick={() => setView('daily')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'daily' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-gray-700'}`}>Diário</button>
+                    <button onClick={() => setView('weekly')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'weekly' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-gray-700'}`}>Semanal</button>
+                    <button onClick={() => setView('monthly')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-gray-700'}`}>Mensal</button>
+                  </div>
+
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                        key={view}
+                        initial={{ y: 10, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -10, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                      {view === 'daily' && (
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Pódio do Dia: {selectedDate.toLocaleDateString('pt-BR')}</h2>
+                          {dailyPodium ? (
+                            <ul>{dailyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
+                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 flex-grow hover:underline">{player.name}</button>
+                              <span className="text-gray-600 dark:text-gray-400 font-mono">{player.totalTime} seg</span></li>))}</ul>
+                          ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado registrado para este dia.</p>)}
+                        </div>
+                      )}
+
+                      {view === 'weekly' && (
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">Ranking da Semana</h2>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{getWeekRange()}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
+                          {weeklyPodium && weeklyPodium.some(p => p.wins > 0) ? (
+                            <ul>{weeklyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
+                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 flex-grow hover:underline">{player.name}</button>
+                              <span className="text-gray-600 dark:text-gray-400 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
+                          ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado na semana ainda.</p>)}
+                        </div>
+                      )}
+
+                      {view === 'monthly' && (
+                        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+                          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">Ranking Mensal</h2>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 capitalize">{getMonthName()}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
+                          {monthlyPodium && monthlyPodium.some(p => p.wins > 0) ? (
+                            <ul>{monthlyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
+                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 flex-grow hover:underline">{player.name}</button>
+                              <span className="text-gray-600 dark:text-gray-400 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
+                          ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado no mês ainda.</p>)}
+                        </div>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </motion.div>
-
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={view}
-                  initial={{ y: 10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -10, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {/* O conteúdo dos pódios continua o mesmo */}
-                  {view === 'daily' && (
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Pódio do Dia: {selectedDate.toLocaleDateString('pt-BR')}</h2>
-                      {dailyPodium ? (
-                        <ul>{dailyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} /><span className="font-semibold text-lg text-gray-700 dark:text-gray-200 flex-grow">{player.name}</span><span className="text-gray-600 dark:text-gray-400 font-mono">{player.totalTime} seg</span></li>))}</ul>
-                      ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado registrado para este dia.</p>)}
-                    </div>
-                  )}
-
-                  {view === 'weekly' && (
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">Ranking da Semana</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{getWeekRange()}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
-                      {weeklyPodium && weeklyPodium.some(p => p.wins > 0) ? (
-                        <ul>{weeklyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} /><span className="font-semibold text-lg text-gray-700 dark:text-gray-200 flex-grow">{player.name}</span><span className="text-gray-600 dark:text-gray-400 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
-                      ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado na semana ainda.</p>)}
-                    </div>
-                  )}
-
-                  {view === 'monthly' && (
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                      <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">Ranking Mensal</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 capitalize">{getMonthName()}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
-                      {monthlyPodium && monthlyPodium.some(p => p.wins > 0) ? (
-                        <ul>{monthlyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} /><span className="font-semibold text-lg text-gray-700 dark:text-gray-200 flex-grow">{player.name}</span><span className="text-gray-600 dark:text-gray-400 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
-                      ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado no mês ainda.</p>)}
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </main>
-        </div>
-        <style>{`
-          /* Estilos adicionais, se necessário */
-        `}</style>
+            ) : (
+              <motion.div key="player-stats" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
+                <PlayerStatsPage stats={playerStats} onBack={() => setCurrentView('scoreboard')} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
       </div>
-    );
-  }
-  // Fallback for any other case
-  return <LoadingScreen message="Inicializando" />;
+    </div>
+  );
 }
