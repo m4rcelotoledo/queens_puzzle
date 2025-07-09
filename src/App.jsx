@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, logEvent } from "firebase/analytics";
 import {
   getAuth,
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  signOut
+  signOut,
+  getIdTokenResult
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -14,90 +15,14 @@ import {
   setDoc,
   onSnapshot,
   collection,
-  query,
-  getDoc
-
+  query
 } from 'firebase/firestore';
 
-// Component to render podium icon
-const PodiumIcon = ({ rank }) => {
-  const icons = {
-    1: { emoji: '🥇', color: 'text-yellow-400' },
-    2: { emoji: '🥈', color: 'text-gray-400' },
-    3: { emoji: '🥉', color: 'text-yellow-600' },
-  };
-  if (!icons[rank]) return null;
-  return <span className={`mr-2 text-2xl ${icons[rank].color}`}>{icons[rank].emoji}</span>;
-};
-
-// Application State Components
-const LoadingScreen = ({ message }) => (
-  <div className="min-h-screen bg-gray-100 flex items-center justify-center text-gray-600 font-semibold text-lg">
-    {message}...
-  </div>
-);
-
-const LoginScreen = ({ onLogin, error }) => (
-  <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-    <div className="text-center mb-8">
-      <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800">
-        🏆 Placar do Puzzle das Rainhas 👑
-      </h1>
-      <p className="text-gray-600 mt-2">Faça login para continuar</p>
-    </div>
-    <button
-      onClick={onLogin}
-      className="bg-white px-6 py-3 rounded-lg shadow-lg flex items-center font-semibold text-gray-700 hover:bg-gray-200 transition-all duration-300"
-    >
-      <img src="https://www.google.com/favicon.ico" alt="Google icon" className="w-6 h-6 mr-4"/>
-      Entrar com Google
-    </button>
-    {error && <p className="text-red-500 mt-4">{error}</p>}
-  </div>
-);
-
-const PlayerSetupModal = ({ onSetupComplete }) => {
-  const [playerNames, setPlayerNames] = useState(['', '', '']);
-
-  const handlePlayerChange = (index, name) => {
-    const newPlayers = [...playerNames];
-    newPlayers[index] = name;
-    setPlayerNames(newPlayers);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (playerNames.every(p => p.trim() !== '')) {
-      onSetupComplete(playerNames.map(p => p.trim()));
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Configure os Jogadores</h2>
-        <form onSubmit={handleSubmit}>
-          <p className="text-gray-600 mb-4">Digite o nome dos 3 participantes. Isto só precisa de ser feito uma vez.</p>
-          {playerNames.map((_, index) => (
-            <div key={index} className="mb-4">
-              <input
-                type="text"
-                value={playerNames[index]}
-                onChange={(e) => handlePlayerChange(index, e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder={`Nome do Jogador ${index + 1}`}
-                required
-              />
-            </div>
-          ))}
-          <button type="submit" className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700">
-            Salvar Jogadores
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
+import LoadingScreen from './components/LoadingScreen';
+import LoginScreen from './components/LoginScreen';
+import Notification from './components/Notification';
+import PlayerSetupModal from './components/PlayerSetupModal';
+import PodiumIcon from './components/PodiumIcon';
 
 // --- Main Component of the Application ---
 export default function App() {
@@ -106,6 +31,7 @@ export default function App() {
   const [auth, setAuth] = useState(null);
   const [user, setUser] = useState(null);
   const [authError, setAuthError] = useState(null);
+  const [isAllowed, setIsAllowed] = useState(false);
 
   // --- States of Logic and Data ---
   const [appStatus, setAppStatus] = useState('LOADING_AUTH'); // LOADING_AUTH, LOGIN, LOADING_DATA, SETUP_PLAYERS, READY
@@ -114,6 +40,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState('daily');
   const [times, setTimes] = useState({});
+  const [notification, setNotification] = useState({ message: '', type: '' });
 
   const appId = 'queens-puzzle';
 
@@ -138,40 +65,32 @@ export default function App() {
 
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
       if (currentUser) {
-        const permissionsDocRef = doc(firestoreDb, `artifacts/${appId}/config`, 'permissions');
-        try {
-            const permissionsDoc = await getDoc(permissionsDocRef);
-            if (permissionsDoc.exists() && permissionsDoc.data().allowedUsers.includes(currentUser.email)) {
-              setUser(currentUser);
-              setAppStatus('LOADING_DATA');
-            } else {
-              setAuthError('Acesso negado. A sua conta não tem permissão.');
-              await signOut(firebaseAuth);
-              setUser(null);
-              setAppStatus('LOGIN');
-            }
-        } catch (error) {
-            console.error("Erro ao verificar permissões:", error);
-            setAuthError('Ocorreu um erro ao verificar as suas permissões.');
-            await signOut(firebaseAuth);
-            setUser(null);
-            setAppStatus('LOGIN');
+        // Force token refresh to get the latest Custom Claim
+        const tokenResult = await getIdTokenResult(currentUser, true);
+        if (tokenResult.claims.isAllowed === true) {
+          setUser(currentUser);
+          setIsAllowed(true);
+          setAppStatus('LOADING_DATA');
+        } else {
+          setAuthError('Acesso negado. Sua conta não tem permissão.');
+          await signOut(firebaseAuth);
         }
       } else {
         setUser(null);
+        setIsAllowed(false);
         setAppStatus('LOGIN');
       }
     });
+
     return () => unsubscribe();
   }, []);
 
   // Effect for Loading Data (only runs when the status changes to LOADING_DATA)
   useEffect(() => {
-    if (appStatus !== 'LOADING_DATA' || !db) return;
-zzs
-    const playersDocRef = doc(db, `artifacts/${appId}/config`, 'players');
+    if (appStatus !== 'LOADING_DATA' || !db || !isAllowed) return;
 
     // Listener for players
+    const playersDocRef = doc(db, `artifacts/${appId}/config`, 'players');
     const unsubPlayers = onSnapshot(playersDocRef, (doc) => {
       if (doc.exists()) {
         setPlayers(doc.data().names);
@@ -181,6 +100,7 @@ zzs
       }
     }, (error) => {
       console.error("Erro ao buscar jogadores:", error);
+      setNotification({ message: 'Erro ao carregar dados dos jogadores.', type: 'error' });
       setAppStatus('LOGIN');
     });
 
@@ -190,13 +110,16 @@ zzs
       const newScores = {};
       snapshot.forEach((doc) => { newScores[doc.id] = doc.data(); });
       setScores(newScores);
+    }, (error) => {
+      console.error("Erro ao buscar placares:", error);
+      setNotification({ message: 'Erro ao carregar placares.', type: 'error' });
     });
 
     return () => {
       unsubPlayers();
       unsubScores();
     };
-  }, [appStatus, db]);
+  }, [appStatus, db, isAllowed]);
 
   // --- Action Functions ---
   const handleLogin = async () => {
@@ -218,18 +141,21 @@ zzs
   // --- Data Manipulation Logic ---
   const handlePlayerSetup = async (playerNames) => {
     if (!db) return;
-    const playersDocRef = doc(db, `artifacts/${appId}/public/data/config`, 'players');
-    await setDoc(playersDocRef, { names: playerNames });
+    const playersDocRef = doc(db, `artifacts/${appId}/config`, 'players');
+    try {
+      await setDoc(playersDocRef, { names: playerNames });
+      setNotification({ message: 'Jogadores salvos com sucesso!', type: 'success' });
+    } catch (error) {
+      console.error("Erro ao configurar jogadores:", error);
+      setNotification({ message: 'Falha ao salvar jogadores.', type: 'error' });
+    }
   };
 
   const handleTimeChange = (playerName, type, value) => {
     const numericValue = value === '' ? '' : Math.max(0, parseInt(value, 10));
     setTimes(prev => ({
       ...prev,
-      [playerName]: {
-        ...prev[playerName],
-        [type]: numericValue
-      }
+      [playerName]: { ...prev[playerName], [type]: numericValue }
     }));
   };
 
@@ -238,29 +164,72 @@ zzs
     if (!db || !players) return;
 
     const results = players.map(name => {
-      const time = times[name]?.time || 0;
-      const bonusTime = isSunday ? (times[name]?.bonusTime || 0) : 0;
+      const time = Number(times[name]?.time || 0);
+      const bonusTime = isSunday ? Number(times[name]?.bonusTime || 0) : 0;
       return { name, time, bonusTime, totalTime: time + bonusTime };
     });
 
     // Validate if at least one time was inserted
     if (results.every(r => r.totalTime === 0)) {
-        alert("Por favor, insira o tempo de pelo menos um jogador.");
-        return;
+      setNotification({ message: 'Insira o tempo de pelo menos um jogador.', type: 'warning' });
+      return;
     }
 
     const scoreData = { date: dateString, dayOfWeek: selectedDate.getDay(), results };
 
     try {
+      // 1. Save the data to Firestore
       const docRef = doc(db, `artifacts/${appId}/public/data/scores`, dateString);
       await setDoc(docRef, scoreData);
+
+      // 2. Updates the local state so that the UI reacts instantly
+      setScores(prevScores => ({
+        ...prevScores,
+        [dateString]: scoreData
+      }));
+
+      // 3. Sends an event to Analytics (does not block the UI)
+      const analytics = getAnalytics();
+      logEvent(analytics, 'score_saved', {
+        date: dateString,
+        player_count: results.length
+      });
+
+      // 4. Shows the success notification
+      setNotification({ message: 'Placar salvo com sucesso!', type: 'success' });
+
+      // 5. Clears the form fields
+      setTimes({});
+
+    } catch (error) {
+      console.error("Erro ao salvar pontuação: ", error);
+      setNotification({ message: 'Falha ao salvar o placar.', type: 'error' });
+    }
+
+    try {
+      const docRef = doc(db, `artifacts/${appId}/public/data/scores`, dateString);
+      await setDoc(docRef, scoreData);
+
+      setScores(prevScores => ({
+        ...prevScores,
+        [dateString]: scoreData
+      }));
+
+      // Create a custom event in Analytics
+      const analytics = getAnalytics();
+      logEvent(analytics, 'score_saved', {
+        date: dateString,
+        player_count: results.length
+      });
+
+      setNotification({ message: 'Placar salvo com sucesso!', type: 'success' });
       // Clean up fields after saving
       setTimes({});
     } catch (error) {
       console.error("Erro ao salvar pontuação: ", error);
+      setNotification({ message: 'Falha ao salvar o placar.', type: 'error' });
     }
   };
-
 
   // --- Podium Calculation Logic (Memorized) ---
   const dateString = selectedDate.toISOString().split('T')[0];
@@ -269,11 +238,13 @@ zzs
   const dailyPodium = useMemo(() => {
     const dayScore = scores[dateString];
     if (!dayScore || dayScore.results.every(r => r.totalTime === 0)) return null;
+
     return [...dayScore.results].sort((a, b) => a.totalTime - b.totalTime);
   }, [scores, dateString]);
 
   const weeklyPodium = useMemo(() => {
     if (!players) return null;
+
     const startOfWeek = new Date(selectedDate);
     const dayOfWeek = startOfWeek.getDay();
     const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
@@ -290,34 +261,33 @@ zzs
       if (dayScore && !dayScore.results.every(r => r.totalTime === 0)) {
         const sortedDay = [...dayScore.results].sort((a, b) => a.totalTime - b.totalTime);
         const winner = sortedDay[0];
+
         if (winner && winner.totalTime > 0) {
-            const weight = dayScore.dayOfWeek === 0 ? 3 : 1;
-            weeklyWins[winner.name] += weight;
+          const weight = dayScore.dayOfWeek === 0 ? 3 : 1;
+          weeklyWins[winner.name] += weight;
         }
       }
     }
-    return Object.entries(weeklyWins)
-      .map(([name, wins]) => ({ name, wins }))
-      .sort((a, b) => b.wins - a.wins);
+
+    return Object.entries(weeklyWins).map(([name, wins]) => ({ name, wins })).sort((a, b) => b.wins - a.wins);
   }, [scores, selectedDate, players]);
 
   const monthlyPodium = useMemo(() => {
     if (!players) return null;
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
-
     const monthlyWins = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
 
     Object.values(scores).forEach(score => {
       const scoreDate = new Date(score.date + 'T12:00:00');
       if (scoreDate.getFullYear() === year && scoreDate.getMonth() === month) {
         if (score.results && !score.results.every(r => r.totalTime === 0)) {
-            const sortedDay = [...score.results].sort((a, b) => a.totalTime - b.totalTime);
-            const winner = sortedDay[0];
-            if (winner && winner.totalTime > 0) {
-                const weight = score.dayOfWeek === 0 ? 3 : 1;
-                monthlyWins[winner.name] += weight;
-            }
+          const sortedDay = [...score.results].sort((a, b) => a.totalTime - b.totalTime);
+          const winner = sortedDay[0];
+          if (winner && winner.totalTime > 0) {
+            const weight = score.dayOfWeek === 0 ? 3 : 1;
+            monthlyWins[winner.name] += weight;
+          }
         }
       }
     });
@@ -328,6 +298,8 @@ zzs
 
   // --- This effect fills the times when the date changes ---
   useEffect(() => {
+    setTimes({});
+
     const dayScore = scores[dateString];
     if (dayScore) {
       const initialTimes = {};
@@ -352,8 +324,8 @@ zzs
   };
 
   const getMonthName = () => {
-      return selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric'});
-  }
+    return selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  };
 
   // --- State-Based Rendering ---
   if (appStatus === 'LOADING_AUTH') return <LoadingScreen message="Verificando autenticação" />;
@@ -365,6 +337,11 @@ zzs
   if (appStatus === 'READY' && user && players) {
     return (
       <div className="bg-gray-100 min-h-screen font-sans p-4 sm:p-6 lg:p-8">
+        <Notification
+            message={notification.message}
+            type={notification.type}
+            onDismiss={() => setNotification({ message: '', type: '' })}
+        />
         <div className="max-w-6xl mx-auto">
           <header className="text-center mb-8 relative">
             <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800">
@@ -379,7 +356,6 @@ zzs
           </header>
 
           <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Data Entry Column */}
             <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg">
               <h2 className="text-2xl font-bold text-gray-800 mb-4">Registrar Tempos</h2>
               <div className="mb-4">
@@ -402,7 +378,7 @@ zzs
                       <label className="text-sm text-gray-600">Tempo (segundos)</label>
                       <input
                         type="number" min="0" placeholder="Ex: 125"
-                        value={times[name]?.time || ''}
+                        value={times[name]?.time ?? ''}
                         onChange={(e) => handleTimeChange(name, 'time', e.target.value)}
                         className="w-full p-2 border border-gray-200 rounded-md mt-1"
                       />
@@ -412,7 +388,7 @@ zzs
                         <label className="text-sm text-gray-600">Tempo Bônus (segundos)</label>
                         <input
                           type="number" min="0" placeholder="Ex: 240"
-                          value={times[name]?.bonusTime || ''}
+                          value={times[name]?.bonusTime ?? ''}
                           onChange={(e) => handleTimeChange(name, 'bonusTime', e.target.value)}
                           className="w-full p-2 border border-gray-200 rounded-md mt-1"
                         />
@@ -426,7 +402,6 @@ zzs
               </form>
             </div>
 
-            {/* Results Column */}
             <div className="lg:col-span-2">
               <div className="flex items-center justify-center space-x-2 mb-6 bg-white p-2 rounded-full shadow-md">
                 <button onClick={() => setView('daily')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'daily' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-indigo-100'}`}>Diário</button>
@@ -434,7 +409,6 @@ zzs
                 <button onClick={() => setView('monthly')} className={`px-4 py-2 rounded-full font-semibold transition-colors ${view === 'monthly' ? 'bg-indigo-600 text-white' : 'text-gray-600 hover:bg-indigo-100'}`}>Mensal</button>
               </div>
 
-              {/* Daily View */}
               {view === 'daily' && (
                 <div className="bg-white p-6 rounded-xl shadow-lg animate-fade-in">
                   <h2 className="text-2xl font-bold text-gray-800 mb-4">Pódio do Dia: {selectedDate.toLocaleDateString('pt-BR')}</h2>
@@ -444,27 +418,25 @@ zzs
                 </div>
               )}
 
-              {/* Weekly View */}
               {view === 'weekly' && (
                 <div className="bg-white p-6 rounded-xl shadow-lg animate-fade-in">
                   <h2 className="text-2xl font-bold text-gray-800 mb-1">Ranking da Semana</h2>
                   <p className="text-sm text-gray-500 mb-4">{getWeekRange()}</p>
                   <p className="text-xs text-gray-500 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
-                  {weeklyPodium ? (
+                  {weeklyPodium && weeklyPodium.some(p => p.wins > 0) ? (
                     <ul>{weeklyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 rounded-lg border"><PodiumIcon rank={index + 1} /><span className="font-semibold text-lg text-gray-700 flex-grow">{player.name}</span><span className="text-gray-600 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
-                  ) : (<p className="text-gray-500 text-center py-8">Calculando resultados...</p>)}
+                  ) : (<p className="text-gray-500 text-center py-8">Nenhum resultado na semana ainda.</p>)}
                 </div>
               )}
 
-              {/* Monthly View */}
               {view === 'monthly' && (
                 <div className="bg-white p-6 rounded-xl shadow-lg animate-fade-in">
                   <h2 className="text-2xl font-bold text-gray-800 mb-1">Ranking Mensal</h2>
                   <p className="text-sm text-gray-500 mb-4 capitalize">{getMonthName()}</p>
                   <p className="text-xs text-gray-500 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
-                  {monthlyPodium ? (
+                  {monthlyPodium && monthlyPodium.some(p => p.wins > 0) ? (
                     <ul>{monthlyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 rounded-lg border"><PodiumIcon rank={index + 1} /><span className="font-semibold text-lg text-gray-700 flex-grow">{player.name}</span><span className="text-gray-600 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
-                  ) : (<p className="text-gray-500 text-center py-8">Calculando resultados...</p>)}
+                  ) : (<p className="text-gray-500 text-center py-8">Nenhum resultado no mês ainda.</p>)}
                 </div>
               )}
 
@@ -472,6 +444,13 @@ zzs
           </main>
         </div>
         <style>{`
+          @keyframes fade-in-down {
+            from { opacity: 0; transform: translate(-50%, -20px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
+          }
+          .animate-fade-in-down {
+            animation: fade-in-down 0.5s ease-out forwards;
+          }
           @keyframes fade-in {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -483,7 +462,6 @@ zzs
       </div>
     );
   }
-
   // Fallback for any other case
   return <LoadingScreen message="Inicializando" />;
 }
