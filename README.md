@@ -172,6 +172,71 @@ if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
 return a.name.localeCompare(b.name);
 ```
 
+### **📅 Cálculo de Períodos (Implementação Técnica):**
+
+#### **Rank Semanal:**
+```javascript
+// Calcula o início da semana (segunda-feira)
+const dayOfWeek = startOfWeek.getDay();
+const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+startOfWeek.setDate(diffToMonday);
+
+// Itera por 7 dias (segunda a domingo)
+for (let i = 0; i < 7; i++) {
+  const currentDate = new Date(startOfWeek);
+  currentDate.setDate(startOfWeek.getDate() + i);
+  // Processa cada dia da semana
+}
+```
+
+#### **Rank Mensal:**
+```javascript
+// Filtra scores do mês selecionado
+const year = selectedDate.getFullYear();
+const month = selectedDate.getMonth();
+
+Object.values(scores).forEach(score => {
+  const scoreDate = new Date(score.date + 'T12:00:00');
+  if (scoreDate.getFullYear() === year && scoreDate.getMonth() === month) {
+    // Processa apenas scores deste mês
+  }
+});
+```
+
+### **📋 Exemplos Práticos de Períodos:**
+
+#### **Exemplo 1: Rank Semanal**
+```
+Data selecionada: 15 de janeiro de 2024 (segunda-feira)
+Período considerado: 15/01/2024 (segunda) a 21/01/2024 (domingo)
+
+Scores incluídos:
+- 15/01/2024 (segunda): João vence
+- 16/01/2024 (terça): Maria vence
+- 17/01/2024 (quarta): João vence
+- 18/01/2024 (quinta): Pedro vence
+- 19/01/2024 (sexta): Maria vence
+- 20/01/2024 (sábado): João vence
+- 21/01/2024 (domingo): Pedro vence (3 pontos)
+```
+
+#### **Exemplo 2: Rank Mensal**
+```
+Data selecionada: 15 de janeiro de 2024
+Período considerado: 01/01/2024 a 31/01/2024
+
+Scores incluídos:
+- 01/01/2024: João vence
+- 07/01/2024: Maria vence (domingo = 3 pontos)
+- 15/01/2024: Pedro vence
+- 22/01/2024: João vence
+- 28/01/2024: Maria vence (domingo = 3 pontos)
+
+Scores NÃO incluídos:
+- 31/12/2023: Score de dezembro (mês anterior)
+- 01/02/2024: Score de fevereiro (mês posterior)
+```
+
 ### **Estrutura de Dados:**
 ```javascript
 // Estrutura de um score diário
@@ -216,6 +281,18 @@ queens_puzzle/
 ```
 
 ## 🎮 **Regras do Jogo**
+
+### **📅 Definição de Períodos:**
+
+#### **Rank Semanal:**
+- **Período:** Segunda-feira (00:00) até Domingo (23:59)
+- **Cálculo:** A partir de qualquer data, calcula a semana que contém essa data
+- **Exemplo:** Se hoje é quarta-feira, considera de segunda a domingo da mesma semana
+
+#### **Rank Mensal:**
+- **Período:** Dia 1 (00:00) até o último dia do mês (23:59)
+- **Cálculo:** Considera todos os scores do mês da data selecionada
+- **Exemplo:** Se hoje é dia 15 de janeiro, considera todos os scores de 1º a 31 de janeiro
 
 ### **Sistema de Pontuação:**
 - **Dias normais:** 1 ponto por vitória
