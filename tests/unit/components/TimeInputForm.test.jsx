@@ -17,7 +17,7 @@ describe('TimeInputForm', () => {
     jest.clearAllMocks();
   });
 
-  test('deve renderizar campos para todos os jogadores', () => {
+  test('should render fields for all players', () => {
     render(<TimeInputForm {...defaultProps} />);
 
     expect(screen.getByRole('heading', { name: /João/i })).toBeInTheDocument();
@@ -25,7 +25,7 @@ describe('TimeInputForm', () => {
     expect(screen.getByRole('heading', { name: /Pedro/i })).toBeInTheDocument();
   });
 
-  test('deve mostrar campos de tempo bônus apenas para domingos', () => {
+  test('should show bonus time fields only on Sundays', () => {
     const { rerender } = render(<TimeInputForm {...defaultProps} />);
 
     // Sunday = false
@@ -36,7 +36,7 @@ describe('TimeInputForm', () => {
     expect(screen.getAllByText('Tempo Bônus (segundos)')).toHaveLength(3);
   });
 
-  test('deve chamar handleTimeChange quando tempo é alterado', () => {
+  test('should call handleTimeChange when time is changed', () => {
     render(<TimeInputForm {...defaultProps} />);
 
     const timeInput = screen.getAllByPlaceholderText('Ex: 125')[0];
@@ -45,7 +45,7 @@ describe('TimeInputForm', () => {
     expect(defaultProps.handleTimeChange).toHaveBeenCalledWith('João', 'time', '120');
   });
 
-  test('deve chamar handleTimeChange quando tempo bônus é alterado', () => {
+  test('should call handleTimeChange when bonus time is changed', () => {
     render(<TimeInputForm {...defaultProps} isSunday={true} />);
 
     const bonusInputs = screen.getAllByPlaceholderText('Ex: 240');
@@ -54,7 +54,7 @@ describe('TimeInputForm', () => {
     expect(defaultProps.handleTimeChange).toHaveBeenCalledWith('João', 'bonusTime', '60');
   });
 
-  test('deve chamar handleSaveScore quando formulário é submetido', async () => {
+  test('should call handleSaveScore when the form is submitted', async () => {
     render(<TimeInputForm {...defaultProps} />);
 
     const form = document.querySelector('form');
@@ -63,7 +63,7 @@ describe('TimeInputForm', () => {
     expect(defaultProps.handleSaveScore).toHaveBeenCalled();
   });
 
-  test('deve chamar setTimes quando botão limpar é clicado', async () => {
+  test('should call setTimes when the clear button is clicked', async () => {
     const user = userEvent.setup();
     render(<TimeInputForm {...defaultProps} />);
 
@@ -73,7 +73,7 @@ describe('TimeInputForm', () => {
     expect(defaultProps.setTimes).toHaveBeenCalledWith({});
   });
 
-  test('deve exibir valores pré-preenchidos quando times não está vazio', () => {
+  test('should display pre-filled values when times is not empty', () => {
     const timesWithValues = {
       'João': { time: 120, bonusTime: 0 },
       'Maria': { time: 150, bonusTime: 0 },
@@ -86,7 +86,7 @@ describe('TimeInputForm', () => {
     expect(timeInputs).toHaveLength(1);
   });
 
-  test('deve exibir valores de tempo bônus quando é domingo', () => {
+  test('should display bonus time values when it is Sunday', () => {
     const timesWithBonus = {
       'João': { time: 120, bonusTime: 60 },
       'Maria': { time: 150, bonusTime: 30 },
@@ -99,7 +99,7 @@ describe('TimeInputForm', () => {
     expect(screen.getByDisplayValue('60')).toBeInTheDocument();
   });
 
-  test('deve lidar com valores vazios corretamente', () => {
+  test('should handle empty values correctly', () => {
     const timesWithEmptyValues = {
       'João': { time: '', bonusTime: '' },
       'Maria': { time: '', bonusTime: '' },
@@ -112,7 +112,7 @@ describe('TimeInputForm', () => {
     expect(timeInputs).toHaveLength(3);
   });
 
-  test('deve ter acessibilidade adequada', () => {
+  test('should have accessibility', () => {
     render(<TimeInputForm {...defaultProps} />);
 
     // Check if the labels are associated with the inputs
@@ -124,7 +124,7 @@ describe('TimeInputForm', () => {
     expect(timeInputs).toHaveLength(3);
   });
 
-  test('deve ter botões com tipos corretos', () => {
+  test('should have buttons with correct types', () => {
     render(<TimeInputForm {...defaultProps} />);
 
     const submitButton = screen.getByText('Salvar');

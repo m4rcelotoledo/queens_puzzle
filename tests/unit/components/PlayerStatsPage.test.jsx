@@ -39,7 +39,7 @@ describe('PlayerStatsPage', () => {
     jest.clearAllMocks();
   });
 
-  test('deve renderizar estatísticas do jogador corretamente', () => {
+  test('should render player stats correctly', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     expect(screen.getByText('João Silva - Estatísticas')).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('PlayerStatsPage', () => {
     expect(screen.getByText('120')).toBeInTheDocument(); // Average time
   });
 
-  test('deve exibir unidades corretas para cada estatística', () => {
+  test('should display correct units for each statistic', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     expect(screen.getByText('Vitórias (🥇)')).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe('PlayerStatsPage', () => {
     expect(timeUnits).toHaveLength(2); // Best time and average time
   });
 
-  test('deve renderizar gráfico de evolução', () => {
+  test('should render the evolution chart', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     expect(screen.getByText('Evolução do Tempo')).toBeInTheDocument();
@@ -73,7 +73,7 @@ describe('PlayerStatsPage', () => {
     expect(screen.getByTestId('responsive-container')).toBeInTheDocument();
   });
 
-  test('deve chamar onBack quando botão voltar é clicado', async () => {
+  test('should call onBack when the back button is clicked', async () => {
     const user = userEvent.setup();
     render(<PlayerStatsPage {...defaultProps} />);
 
@@ -83,7 +83,7 @@ describe('PlayerStatsPage', () => {
     expect(defaultProps.onBack).toHaveBeenCalledTimes(1);
   });
 
-  test('deve lidar com estatísticas vazias', () => {
+  test('should handle empty stats', () => {
     const emptyStats = {
       name: 'João Silva',
       wins: 0,
@@ -100,7 +100,7 @@ describe('PlayerStatsPage', () => {
     expect(screen.getAllByText('N/A')).toHaveLength(2); // Best time and average time
   });
 
-  test('deve lidar com tempo médio como string', () => {
+  test('should handle average time as string', () => {
     const statsWithStringAvg = {
       ...mockStats,
       avgTime: '115.5'
@@ -111,14 +111,14 @@ describe('PlayerStatsPage', () => {
     expect(screen.getByText('115.5')).toBeInTheDocument();
   });
 
-  test('deve renderizar botão voltar com estilo correto', () => {
+  test('should render the back button with the correct style', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     const backButton = screen.getByText('← Voltar');
     expect(backButton).toHaveClass('bg-gray-200');
   });
 
-  test('deve ter estrutura de layout correta', () => {
+  test('should have the correct layout structure', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     // Check if the main container exists
@@ -126,7 +126,7 @@ describe('PlayerStatsPage', () => {
     expect(container).toBeInTheDocument();
   });
 
-  test('deve exibir histórico de tempos no gráfico', () => {
+  test('should display time history in the chart', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     // Check if the chart is present
@@ -135,14 +135,14 @@ describe('PlayerStatsPage', () => {
     expect(screen.getByTestId('y-axis')).toBeInTheDocument();
   });
 
-  test('deve lidar com stats null', () => {
+  test('should handle stats null', () => {
     render(<PlayerStatsPage {...defaultProps} stats={null} />);
 
     // The component should not render anything when stats is null
     expect(screen.queryByText('João Silva - Estatísticas')).not.toBeInTheDocument();
   });
 
-  test('deve ter acessibilidade adequada', () => {
+  test('should have accessibility', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     // Check if the back button has the correct role
@@ -154,7 +154,7 @@ describe('PlayerStatsPage', () => {
     expect(screen.getByRole('heading', { level: 3 })).toBeInTheDocument();
   });
 
-  test('deve exibir estatísticas com valores corretos', () => {
+  test('should display stats with correct values', () => {
     const statsWithHighValues = {
       name: 'Maria Santos',
       wins: 15,
