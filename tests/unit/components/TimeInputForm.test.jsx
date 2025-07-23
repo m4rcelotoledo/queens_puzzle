@@ -36,7 +36,7 @@ describe('TimeInputForm', () => {
     expect(screen.getAllByText('Tempo Bônus (segundos)')).toHaveLength(3);
   });
 
-        test('deve chamar handleTimeChange quando tempo é alterado', () => {
+  test('deve chamar handleTimeChange quando tempo é alterado', () => {
     render(<TimeInputForm {...defaultProps} />);
 
     const timeInput = screen.getAllByPlaceholderText('Ex: 125')[0];
