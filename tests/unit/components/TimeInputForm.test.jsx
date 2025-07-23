@@ -20,9 +20,9 @@ describe('TimeInputForm', () => {
   test('deve renderizar campos para todos os jogadores', () => {
     render(<TimeInputForm {...defaultProps} />);
 
-    expect(screen.getByText('João')).toBeInTheDocument();
-    expect(screen.getByText('Maria')).toBeInTheDocument();
-    expect(screen.getByText('Pedro')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /João/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Maria/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Pedro/i })).toBeInTheDocument();
   });
 
   test('deve mostrar campos de tempo bônus apenas para domingos', () => {
