@@ -217,7 +217,7 @@ describe('calculateDailyPodium', () => {
       date: '2024-01-01',
       results: [
         { name: 'Ana', time: 50, bonusTime: 0, totalTime: 50 },
-        { name: 'Ana', time: 50, bonusTime: 0, totalTime: 50 } // Same player, same time
+        { name: 'Ana', time: 50, bonusTime: 0, totalTime: 50 } // Different player, same name, and same time
       ]
     };
     const podium = calculateDailyPodium(dayScore);
