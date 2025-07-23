@@ -84,7 +84,9 @@ export const calculateDailyPodium = (dayScore) => {
 export const calculateWeeklyPodium = (players, scores, selectedDate) => {
   if (!players) return null;
 
-  const startOfWeek = new Date(selectedDate);
+  // Force UTC timezone to avoid CI/local differences
+  const utcDate = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000));
+  const startOfWeek = new Date(utcDate);
   const dayOfWeek = startOfWeek.getDay();
   const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
   startOfWeek.setDate(diffToMonday);
