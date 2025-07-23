@@ -119,7 +119,7 @@ describe('DarkModeToggle', () => {
     expect(defaultProps.setIsDarkMode).toHaveBeenCalledTimes(3);
   });
 
-    test('deve ter background correto', () => {
+  test('deve ter background correto', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
