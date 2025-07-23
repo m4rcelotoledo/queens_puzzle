@@ -107,7 +107,7 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
         weeklyWins[winner.name] += weight;
       }
 
-      // Sum the time of ALL players (not just wins)
+       // Sum the time of all players with valid times (totalTime > 0)
       dayScore.results.forEach(result => {
         if (result.totalTime > 0) {
           weeklyTimes[result.name] += result.totalTime;
@@ -164,7 +164,7 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
           monthlyWins[winner.name] += weight;
         }
 
-        // Sum the time of ALL players (not just wins)
+        // Sum the time of players with totalTime > 0 (not just wins)
         score.results.forEach(result => {
           if (result.totalTime > 0) {
             monthlyTimes[result.name] += result.totalTime;
