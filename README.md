@@ -2,7 +2,7 @@
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/89cdb707-cd0c-411d-9701-fa89476e5633/deploy-status)](https://app.netlify.com/projects/queens-puzzle/deploys)
 
-Um sistema de ranking para o jogo Queens Puzzle com lógica de ordenação inteligente baseada em pontuação por vitórias e tempo total.
+Um sistema de ranking para o jogo Queens Puzzle com lógica de ordenação inteligente baseada em pontuação por vitórias, número de partidas jogadas e tempo total.
 
 ## 🎯 **Novas Funcionalidades Implementadas**
 
@@ -10,40 +10,48 @@ Um sistema de ranking para o jogo Queens Puzzle com lógica de ordenação intel
 
 #### **Pódio Semanal e Mensal:**
 - **1º Critério:** Pontuação (maior primeiro)
-- **2º Critério:** Tempo total de **TODOS os dias** (menor primeiro)
-- **3º Critério:** Ordem alfabética
+- **2º Critério:** Número de partidas jogadas (maior primeiro)
+- **3º Critério:** Tempo total de **TODOS os dias** (menor primeiro)
+- **4º Critério:** Ordem alfabética
 
 #### **Pódio Diário:**
 - **1º Critério:** Jogadores com tempo > 0 ficam à frente
 - **2º Critério:** Entre jogadores com tempo > 0, ordenar por tempo (menor primeiro)
 - **3º Critério:** Entre jogadores com tempo = 0, ordenar alfabeticamente
 
-### **2. Exemplos de Cenários**
+### **2. Nova Funcionalidade: Contagem de Partidas Jogadas**
 
-#### **Cenário 1: Desempate por Tempo Total de Todos os Dias**
+O sistema agora considera o **número de partidas jogadas** como critério de desempate, priorizando jogadores que participaram mais vezes durante o período (semana/mês). Isso garante que:
+
+- Jogadores que jogaram mais vezes tenham prioridade sobre aqueles que jogaram menos
+- Apenas partidas com tempo > 0 são contadas como "jogadas"
+- Jogadores que não participaram (tempo = 0) não são contados nas partidas jogadas
+
+### **3. Exemplos de Cenários**
+
+#### **Cenário 1: Desempate por Número de Partidas Jogadas**
 ```
-João: 2 vitórias, tempo total: 100+105+90+95 = 390s
-Paulo: 1 vitória, tempo total: 130+95+125+110+85 = 545s
-James: 1 vitória, tempo total: 120+110+115+105+100 = 550s
+Marcelo: 1 vitória, 2 partidas jogadas, tempo total: 44+95 = 139s
+James: 1 vitória, 1 partida jogada, tempo total: 75+50 = 125s
 
-Resultado: 1º Paulo, 2º James, 3º João
+Resultado: 1º Marcelo (mais partidas), 2º James (menos partidas)
 ```
 
 #### **Cenário 2: Domingo com 3 Pontos**
 ```
-Maria: 3 pontos (domingo), tempo total: 120+110 = 230s
-João: 1 ponto (segunda), tempo total: 100s
-Pedro: 0 pontos, tempo total: 130s
+Maria: 3 pontos (domingo), 2 partidas jogadas, tempo total: 120+110 = 230s
+João: 1 ponto (segunda), 1 partida jogada, tempo total: 100s
+Pedro: 0 pontos, 1 partida jogada, tempo total: 130s
 
 Resultado: 1º Maria, 2º João, 3º Pedro
 ```
 
 #### **Cenário 3: Jogadores com Tempo Zero**
 ```
-João: 100s (participou)
-Ana: 0s (não participou)
-Bruno: 0s (não participou)
-Carlos: 0s (não participou)
+João: 100s (participou - 1 partida)
+Ana: 0s (não participou - 0 partidas)
+Bruno: 0s (não participou - 0 partidas)
+Carlos: 0s (não participou - 0 partidas)
 
 Resultado: 1º João, 2º Ana, 3º Bruno, 4º Carlos
 ```
@@ -51,24 +59,33 @@ Resultado: 1º João, 2º Ana, 3º Bruno, 4º Carlos
 #### **Cenário 4: Exemplo Real do Usuário**
 ```
 Segunda-feira:
-- Jhonny: 15s (1 ponto)
-- Marcelo: 19s (0 pontos)
-- James: 31s (0 pontos)
+- Jhonny: 15s (1 ponto, 1 partida)
+- Marcelo: 19s (0 pontos, 1 partida)
+- James: 31s (0 pontos, 1 partida)
 
 Terça-feira:
-- Jhonny: 59s (0 pontos)
-- Marcelo: 44s (1 ponto)
-- James: 75s (0 pontos)
+- Jhonny: 59s (0 pontos, 1 partida)
+- Marcelo: 44s (1 ponto, 1 partida)
+- James: 75s (0 pontos, 1 partida)
 
 Quarta-feira:
-- Jhonny: 60s (0 pontos)
-- Marcelo: 65s (0 pontos)
-- James: 5s (1 ponto)
+- Jhonny: 60s (0 pontos, 1 partida)
+- Marcelo: 65s (0 pontos, 1 partida)
+- James: 5s (1 ponto, 1 partida)
 
 Rank semanal final:
-1. James (1 ponto, tempo total: 31+75+5 = 111s)
-2. Marcelo (1 ponto, tempo total: 19+44+65 = 128s)
-3. Jhonny (1 ponto, tempo total: 15+59+60 = 134s)
+1. James (1 ponto, 3 partidas, tempo total: 31+75+5 = 111s)
+2. Marcelo (1 ponto, 3 partidas, tempo total: 19+44+65 = 128s)
+3. Jhonny (1 ponto, 3 partidas, tempo total: 15+59+60 = 134s)
+```
+
+#### **Cenário 5: Priorização por Número de Partidas**
+```
+Marcelo: 1 vitória, 2 partidas jogadas, tempo total: 139s
+James: 1 vitória, 1 partida jogada, tempo total: 125s
+
+Resultado: 1º Marcelo (mais partidas), 2º James (menos partidas)
+Mesmo com tempo pior, Marcelo fica em primeiro por ter jogado mais vezes.
 ```
 
 ## 🚀 **Como Usar**
@@ -165,10 +182,13 @@ Rank semanal final:
 // 1. Pontuação (maior primeiro)
 if (b.wins !== a.wins) return b.wins - a.wins;
 
-// 2. Tempo total de TODOS os dias (menor primeiro)
+// 2. Número de partidas jogadas (maior primeiro)
+if (b.gamesPlayed !== a.gamesPlayed) return b.gamesPlayed - a.gamesPlayed;
+
+// 3. Tempo total de TODOS os dias (menor primeiro)
 if (a.totalTime !== b.totalTime) return a.totalTime - b.totalTime;
 
-// 3. Ordem alfabética
+// 4. Ordem alfabética
 return a.name.localeCompare(b.name);
 ```
 
