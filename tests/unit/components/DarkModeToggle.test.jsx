@@ -20,7 +20,7 @@ describe('DarkModeToggle', () => {
     expect(toggleButton).toBeInTheDocument();
   });
 
-    test('deve exibir ícone de lua quando em modo claro', () => {
+  test('deve exibir ícone de lua quando em modo claro', () => {
     render(<DarkModeToggle {...defaultProps} isDarkMode={false} />);
 
     // Check if the moon icon is present (light mode shows moon to switch to dark mode)
