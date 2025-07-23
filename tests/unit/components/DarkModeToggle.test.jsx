@@ -72,7 +72,7 @@ describe('DarkModeToggle', () => {
     expect(defaultProps.setIsDarkMode).toHaveBeenCalledWith(false);
   });
 
-    test('deve ter acessibilidade adequada', () => {
+  test('deve ter acessibilidade adequada', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
