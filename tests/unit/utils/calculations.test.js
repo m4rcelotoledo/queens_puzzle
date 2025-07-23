@@ -411,7 +411,7 @@ describe('calculateWeeklyPodium', () => {
     expect(james).toBeDefined();
     expect(paulo).toBeDefined();
 
-    // All should have 3 points (João: 2 wins, James: 3 wins, Paulo: 1 win + 3 from Sunday)
+    // All should have the following points: João: 2 points (2 wins), James: 3 points (3 wins), Paulo: 4 points (1 win + 3 from Sunday)
     expect(joao.wins).toBe(2);
     expect(james.wins).toBe(3);
     expect(paulo.wins).toBe(4); // 1 from Wednesday + 3 from Sunday
