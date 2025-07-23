@@ -212,7 +212,7 @@ describe('calculateDailyPodium', () => {
 describe('calculateWeeklyPodium', () => {
   const mockPlayers = ['João', 'Maria', 'Pedro'];
 
-    test('should calculate weekly podium correctly with new ranking rules', () => {
+  test('should calculate weekly podium correctly', () => {
     // Use a known date that we know is Monday
     const selectedDate = new Date('2024-01-01'); // Monday
     const mockScores = {
@@ -282,7 +282,7 @@ describe('calculateWeeklyPodium', () => {
     }
   });
 
-    test('should handle tie-breaking with total time correctly', () => {
+  test('should handle tie-breaking with total time correctly', () => {
     const selectedDate = new Date('2024-01-01');
     const mockScores = {
       '2024-01-01': { // Sunday - Maria wins (3 points)
@@ -413,7 +413,7 @@ describe('calculateWeeklyPodium', () => {
     // All should have 3 points (João: 2 wins, James: 3 wins, Paulo: 1 win + 3 from Sunday)
     expect(joao.wins).toBe(2);
     expect(james.wins).toBe(3);
-    expect(paulo.wins).toBe(4); // 1 + 3 from Sunday
+    expect(paulo.wins).toBe(4); // 1 from Wednesday + 3 from Sunday
 
     const pauloTotalTime = 130 + 95 + 125 + 110 + 85; // Paulo's total time: 130+95+125+110+85 = 545
     // Paulo should be first (4 points, total time: calculated dynamically)
@@ -421,9 +421,8 @@ describe('calculateWeeklyPodium', () => {
     expect(podium[0].wins).toBe(4);
     expect(podium[0].totalTime).toBe(pauloTotalTime);
 
-    // James should be second (3 points, total time: 120+110+115+105+100 = 550)
-    const jamesTimes = [120, 110, 115, 105, 100];
-    const jamesTotalTime = jamesTimes.reduce((sum, time) => sum + time, 0);
+    // James should be second (3 points, total time: 550)
+    const jamesTotalTime = 120 + 110 + 115 + 105 + 100; // James's total time: 120+110+115+105+100 = 550
     expect(podium[1].name).toBe('James');
     expect(podium[1].wins).toBe(3);
     expect(podium[1].totalTime).toBe(jamesTotalTime);
@@ -435,7 +434,7 @@ describe('calculateWeeklyPodium', () => {
     expect(podium[2].totalTime).toBe(joaoTotalTime);
   });
 
-    test('should handle complete tie in weekly podium', () => {
+  test('should handle complete tie in weekly podium', () => {
     // Test when players have same wins and same total time
     const selectedDate = new Date('2024-01-01');
     const mockScores = {
@@ -638,7 +637,7 @@ describe('calculateWeeklyPodium', () => {
 describe('calculateMonthlyPodium', () => {
   const mockPlayers = ['João', 'Maria', 'Pedro'];
 
-    test('should calculate monthly podium correctly with new ranking rules', () => {
+  test('should calculate monthly podium correctly', () => {
     const selectedDate = new Date('2024-01-15');
     const mockScores = {
       '2024-01-01': { // January
@@ -765,7 +764,7 @@ describe('calculateMonthlyPodium', () => {
     expect(podium[2].totalTime).toBe(345);
   });
 
-    test('should handle complete tie in monthly podium', () => {
+  test('should handle complete tie in monthly podium', () => {
     // Test when players have same wins and same total time in monthly podium
     const selectedDate = new Date('2024-01-15');
     const mockScores = {
@@ -801,7 +800,7 @@ describe('calculateMonthlyPodium', () => {
     expect(podium[1].totalTime).toBe(220); // 100 + 120
   });
 
-    test('should handle alphabetical tie-breaking in monthly podium', () => {
+  test('should handle alphabetical tie-breaking in monthly podium', () => {
     // Test when players have same wins and same total time
     const selectedDate = new Date('2024-01-15');
     const mockScores = {
