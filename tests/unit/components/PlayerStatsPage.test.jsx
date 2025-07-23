@@ -83,7 +83,7 @@ describe('PlayerStatsPage', () => {
     expect(defaultProps.onBack).toHaveBeenCalledTimes(1);
   });
 
-    test('deve lidar com estatísticas vazias', () => {
+  test('deve lidar com estatísticas vazias', () => {
     const emptyStats = {
       name: 'João Silva',
       wins: 0,
