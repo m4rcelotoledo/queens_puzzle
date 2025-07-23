@@ -118,7 +118,7 @@ describe('PlayerStatsPage', () => {
     expect(backButton).toHaveClass('bg-gray-200');
   });
 
-        test('deve ter estrutura de layout correta', () => {
+  test('deve ter estrutura de layout correta', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     // Check if the main container exists
