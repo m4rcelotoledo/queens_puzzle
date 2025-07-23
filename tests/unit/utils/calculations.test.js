@@ -212,7 +212,7 @@ describe('calculateDailyPodium', () => {
 describe('calculateWeeklyPodium', () => {
   const mockPlayers = ['João', 'Maria', 'Pedro'];
 
-        test('should calculate weekly podium correctly with new ranking rules', () => {
+    test('should calculate weekly podium correctly with new ranking rules', () => {
     // Use a known date that we know is Monday
     const selectedDate = new Date('2024-01-01'); // Monday
     const mockScores = {
@@ -415,20 +415,24 @@ describe('calculateWeeklyPodium', () => {
     expect(james.wins).toBe(3);
     expect(paulo.wins).toBe(4); // 1 + 3 from Sunday
 
-    // Paulo should be first (4 points, total time: 130+95+125+110+85 = 545)
+    const pauloTotalTime = 130 + 95 + 125 + 110 + 85; // Paulo's total time: 130+95+125+110+85 = 545
+    // Paulo should be first (4 points, total time: calculated dynamically)
     expect(podium[0].name).toBe('Paulo');
     expect(podium[0].wins).toBe(4);
-    expect(podium[0].totalTime).toBe(545);
+    expect(podium[0].totalTime).toBe(pauloTotalTime);
 
     // James should be second (3 points, total time: 120+110+115+105+100 = 550)
+    const jamesTimes = [120, 110, 115, 105, 100];
+    const jamesTotalTime = jamesTimes.reduce((sum, time) => sum + time, 0);
     expect(podium[1].name).toBe('James');
     expect(podium[1].wins).toBe(3);
-    expect(podium[1].totalTime).toBe(550);
+    expect(podium[1].totalTime).toBe(jamesTotalTime);
 
     // João should be third (2 points, total time: 100+105+90+95 = 390)
+    const joaoTotalTime = 100 + 105 + 90 + 95; // Sum of João's times
     expect(podium[2].name).toBe('João');
     expect(podium[2].wins).toBe(2);
-    expect(podium[2].totalTime).toBe(390);
+    expect(podium[2].totalTime).toBe(joaoTotalTime);
   });
 
     test('should handle complete tie in weekly podium', () => {
@@ -921,7 +925,7 @@ describe('validateTimes', () => {
 });
 
 describe('getWeekRange', () => {
-    test('should return the correct week range', () => {
+  test('should return the correct week range', () => {
     const selectedDate = new Date('2024-01-15'); // Monday
     const weekRange = getWeekRange(selectedDate);
 
