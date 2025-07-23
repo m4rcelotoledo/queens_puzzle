@@ -118,7 +118,7 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
         weeklyWins[winner.name] += weight;
       }
 
-       // Sum the time of all players with valid times (totalTime > 0)
+      // Sum the time of all players with valid times (totalTime > 0)
       dayScore.results.forEach(result => {
         if (result.totalTime > 0) {
           weeklyTimes[result.name] += result.totalTime;
