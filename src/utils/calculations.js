@@ -70,7 +70,8 @@ export const calculateDailyPodium = (dayScore) => {
       return a.name.localeCompare(b.name);
     }
 
-    return 0;
+    // 4. Fallback: order alphabetically for any other case
+    return a.name.localeCompare(b.name);
   });
 };
 
@@ -93,15 +94,20 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
 
   if (!players) return null;
 
-  // Force UTC timezone to avoid CI/local differences
-  const utcDate = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * MILLISECONDS_PER_MINUTE));
-  const startOfWeek = new Date(utcDate);
+  // Use the original date without UTC conversion
+  const startOfWeek = new Date(selectedDate);
   const dayOfWeek = startOfWeek.getDay();
-  const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === SUNDAY_DAY_OF_WEEK ? DAYS_TO_SUNDAY : DAYS_TO_MONDAY);
-  startOfWeek.setDate(diffToMonday);
+
+  // Calculate the start of the week (Monday)
+  // If it's Sunday (dayOfWeek = 0), we need to go back 6 days to get to Monday
+  // For other days, we go back (dayOfWeek - 1) days to get to Monday
+  const daysToSubtract = dayOfWeek === SUNDAY_DAY_OF_WEEK ? 6 : dayOfWeek - 1;
+  startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
 
   const weeklyWins = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
   const weeklyTimes = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
+  const weeklyGames = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
+  const weeklyActivePlayers = new Set(); // Track players who have played at least once
 
   for (let i = 0; i < DAYS_IN_WEEK; i++) {
     const currentDate = new Date(startOfWeek);
@@ -109,8 +115,25 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
     const currentDateString = currentDate.toISOString().split('T')[0];
     const dayScore = scores[currentDateString];
 
-    if (dayScore && dayScore.results && !dayScore.results.every(r => r.totalTime === 0)) {
-      const sortedDay = [...dayScore.results].sort((a, b) => a.totalTime - b.totalTime);
+    if (dayScore && dayScore.results && dayScore.results.some(r => r.totalTime > 0)) {
+      const sortedDay = [...dayScore.results].sort((a, b) => {
+        // 1. Players with time > 0 are in front of those with time = 0
+        if (a.totalTime > 0 && b.totalTime === 0) return -1;
+        if (a.totalTime === 0 && b.totalTime > 0) return 1;
+
+        // 2. Between players with time > 0, order by time (first)
+        if (a.totalTime > 0 && b.totalTime > 0) {
+          return a.totalTime - b.totalTime;
+        }
+
+        // 3. Between players with time = 0, order alphabetically
+        if (a.totalTime === 0 && b.totalTime === 0) {
+          return a.name.localeCompare(b.name);
+        }
+
+        // 4. Fallback: order alphabetically for any other case
+        return a.name.localeCompare(b.name);
+      });
       const winner = sortedDay[0];
 
       if (winner && winner.totalTime > 0) {
@@ -122,16 +145,24 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
       dayScore.results.forEach(result => {
         if (result.totalTime > 0) {
           weeklyTimes[result.name] += result.totalTime;
+          weeklyGames[result.name] += 1; // Count games played
         }
+        // Mark all players as active, even with 0 time
+        weeklyActivePlayers.add(result.name);
       });
     }
   }
 
+  // Include all players who have played at least once in the week
+  const activePlayers = players.filter(player => weeklyActivePlayers.has(player));
+
   return Object.entries(weeklyWins)
+    .filter(([name]) => activePlayers.includes(name)) // Only include active players
     .map(([name, wins]) => ({
       name,
       wins,
-      totalTime: weeklyTimes[name]
+      totalTime: weeklyTimes[name],
+      gamesPlayed: weeklyGames[name]
     }))
     .sort((a, b) => {
       // 1. Order by score (highest first)
@@ -139,12 +170,17 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
         return b.wins - a.wins;
       }
 
-      // 2. If score is equal, order by total time of all days (first)
+      // 2. If score is equal, order by number of games played (highest first)
+      if (a.gamesPlayed !== b.gamesPlayed) {
+        return b.gamesPlayed - a.gamesPlayed;
+      }
+
+      // 3. If games played is equal, order by total time of all days (first)
       if (a.totalTime !== b.totalTime) {
         return a.totalTime - b.totalTime;
       }
 
-      // 3. If time is equal, order alphabetically
+      // 4. If time is equal, order alphabetically
       return a.name.localeCompare(b.name);
     });
 };
@@ -167,6 +203,7 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
   const month = selectedDate.getMonth();
   const monthlyWins = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
   const monthlyTimes = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
+  const monthlyGames = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
 
   Object.values(scores).forEach(score => {
     const scoreDate = new Date(score.date + 'T12:00:00');
@@ -183,6 +220,7 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
         score.results.forEach(result => {
           if (result.totalTime > 0) {
             monthlyTimes[result.name] += result.totalTime;
+            monthlyGames[result.name] += 1; // Count games played
           }
         });
       }
@@ -193,7 +231,8 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
     .map(([name, wins]) => ({
       name,
       wins,
-      totalTime: monthlyTimes[name]
+      totalTime: monthlyTimes[name],
+      gamesPlayed: monthlyGames[name]
     }))
     .sort((a, b) => {
       // 1. Order by score (highest first)
@@ -201,12 +240,17 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
         return b.wins - a.wins;
       }
 
-      // 2. If score is equal, order by total time of all days (first)
+      // 2. If score is equal, order by number of games played (highest first)
+      if (a.gamesPlayed !== b.gamesPlayed) {
+        return b.gamesPlayed - a.gamesPlayed;
+      }
+
+      // 3. If games played is equal, order by total time of all days (first)
       if (a.totalTime !== b.totalTime) {
         return a.totalTime - b.totalTime;
       }
 
-      // 3. If time is equal, order alphabetically
+      // 4. If time is equal, order alphabetically
       return a.name.localeCompare(b.name);
     });
 };
