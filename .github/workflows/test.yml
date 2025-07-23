@@ -1,0 +1,63 @@
+name: Testes Unitários
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Configurar Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Instalar dependências
+      run: npm ci
+
+    - name: Cache Jest
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/jest
+          coverage
+        key: ${{ runner.os }}-jest-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-jest-
+
+    - name: Executar testes unitários
+      run: npm run test:ci
+
+    - name: Upload cobertura de testes
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Verificar cobertura
+      run: |
+        if [ ${{ matrix.node-version }} == '20.x' ]; then
+          npm run test:coverage
+        fi
