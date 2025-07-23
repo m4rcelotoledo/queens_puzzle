@@ -13,14 +13,14 @@ describe('DarkModeToggle', () => {
     jest.clearAllMocks();
   });
 
-  test('deve renderizar o botão de alternância', () => {
+  test('should render the toggle button', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
     expect(toggleButton).toBeInTheDocument();
   });
 
-  test('deve exibir ícone de lua quando em modo claro', () => {
+  test('should display moon icon when in light mode', () => {
     render(<DarkModeToggle {...defaultProps} isDarkMode={false} />);
 
     // Check if the moon icon is present (light mode shows moon to switch to dark mode)
@@ -29,7 +29,7 @@ describe('DarkModeToggle', () => {
     expect(moonIcon).toHaveClass('text-slate-400');
   });
 
-  test('deve exibir ícone de sol quando em modo escuro', () => {
+  test('should display sun icon when in dark mode', () => {
     render(<DarkModeToggle {...defaultProps} isDarkMode={true} />);
 
     // Check if the sun icon is present (dark mode shows sun to switch to light mode)
@@ -38,7 +38,7 @@ describe('DarkModeToggle', () => {
     expect(sunIcon).toHaveClass('text-yellow-500');
   });
 
-  test('deve chamar setIsDarkMode quando clicado', async () => {
+  test('should call setIsDarkMode when clicked', async () => {
     const user = userEvent.setup();
     render(<DarkModeToggle {...defaultProps} />);
 
@@ -48,7 +48,7 @@ describe('DarkModeToggle', () => {
     expect(defaultProps.setIsDarkMode).toHaveBeenCalledWith(true);
   });
 
-  test('deve alternar entre modo claro e escuro', async () => {
+  test('should toggle between light and dark mode', async () => {
     const user = userEvent.setup();
     const { rerender } = render(<DarkModeToggle {...defaultProps} />);
 
@@ -72,7 +72,7 @@ describe('DarkModeToggle', () => {
     expect(defaultProps.setIsDarkMode).toHaveBeenCalledWith(false);
   });
 
-  test('deve ter acessibilidade adequada', () => {
+  test('should have accessibility', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
@@ -82,7 +82,7 @@ describe('DarkModeToggle', () => {
     expect(toggleButton).not.toBeDisabled();
   });
 
-  test('deve ter classes CSS corretas', () => {
+  test('should have correct CSS classes', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
@@ -90,21 +90,21 @@ describe('DarkModeToggle', () => {
     expect(toggleButton).toHaveClass('rounded-full');
   });
 
-  test('deve ser clicável', () => {
+  test('should be clickable', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
     expect(toggleButton).not.toBeDisabled();
   });
 
-  test('deve ter tamanho adequado', () => {
+  test('should have the correct size', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
     expect(toggleButton).toBeInTheDocument();
   });
 
-  test('deve lidar com múltiplos cliques', async () => {
+  test('should handle multiple clicks', async () => {
     const user = userEvent.setup();
     render(<DarkModeToggle {...defaultProps} />);
 
@@ -119,7 +119,7 @@ describe('DarkModeToggle', () => {
     expect(defaultProps.setIsDarkMode).toHaveBeenCalledTimes(3);
   });
 
-  test('deve ter background correto', () => {
+  test('should have the correct background', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');

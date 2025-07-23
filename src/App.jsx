@@ -13,6 +13,15 @@ import PlayerSetupModal from './components/PlayerSetupModal';
 import PlayerStatsPage from './components/PlayerStatsPage';
 import PodiumIcon from './components/PodiumIcon';
 import TimeInputForm from './components/TimeInputForm';
+import {
+  calculatePlayerStats,
+  calculateDailyPodium,
+  calculateWeeklyPodium,
+  calculateMonthlyPodium,
+  validateTimes,
+  getWeekRange,
+  getMonthName
+} from './utils/calculations';
 
 // --- Main Component of the Application ---
 export default function App() {
@@ -121,46 +130,7 @@ export default function App() {
     };
   }, [appStatus, db, isAllowed]);
 
-  const calculatePlayerStats = (playerName) => {
-    if (!scores || !playerName) return null;
-
-    let wins = 0;
-    let podiums = 0;
-    let bestTime = Infinity;
-    let totalTime = 0;
-    let gameCount = 0;
-    const timeHistory = [];
-
-    Object.values(scores).forEach(dayScore => {
-      const sortedDay = [...dayScore.results].sort((a, b) => a.totalTime - b.totalTime);
-      const playerResult = sortedDay.find(p => p.name === playerName);
-
-      if (playerResult && playerResult.totalTime > 0) {
-        const rank = sortedDay.indexOf(playerResult) + 1;
-        if (rank === 1) wins++;
-        if (rank <= 3) podiums++;
-
-        bestTime = Math.min(bestTime, playerResult.totalTime);
-        totalTime += playerResult.totalTime;
-        gameCount++;
-        timeHistory.push({
-          date: new Date(dayScore.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          time: playerResult.totalTime
-        });
-      }
-    });
-
-    return {
-      name: playerName,
-      wins,
-      podiums,
-      bestTime: bestTime === Infinity ? 'N/A' : bestTime,
-      avgTime: gameCount > 0 ? (totalTime / gameCount).toFixed(0) : 'N/A',
-      timeHistory: timeHistory.sort((a,b) => new Date(a.date.split('/').reverse().join('-')) - new Date(b.date.split('/').reverse().join('-'))),
-    };
-  };
-
-  const playerStats = useMemo(() => calculatePlayerStats(selectedPlayer), [selectedPlayer, scores]);
+  const playerStats = useMemo(() => calculatePlayerStats(selectedPlayer, scores), [selectedPlayer, scores]);
 
   const handlePlayerClick = (playerName) => {
     setSelectedPlayer(playerName);
@@ -213,7 +183,7 @@ export default function App() {
     });
 
     // Validate if at least one time was inserted
-    if (results.every(r => r.totalTime === 0)) {
+    if (!validateTimes(times, isSunday)) {
       setNotification({ message: 'Insira o tempo de pelo menos um jogador.', type: 'warning' });
       return;
     }
@@ -250,63 +220,15 @@ export default function App() {
 
   const dailyPodium = useMemo(() => {
     const dayScore = scores[dateString];
-    if (!dayScore || dayScore.results.every(r => r.totalTime === 0)) return null;
-
-    return [...dayScore.results].sort((a, b) => a.totalTime - b.totalTime);
+    return calculateDailyPodium(dayScore);
   }, [scores, dateString]);
 
   const weeklyPodium = useMemo(() => {
-    if (!players) return null;
-
-    const startOfWeek = new Date(selectedDate);
-    const dayOfWeek = startOfWeek.getDay();
-    const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    startOfWeek.setDate(diffToMonday);
-
-    const weeklyWins = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
-
-    for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(startOfWeek);
-      currentDate.setDate(startOfWeek.getDate() + i);
-      const currentDateString = currentDate.toISOString().split('T')[0];
-      const dayScore = scores[currentDateString];
-
-      if (dayScore && !dayScore.results.every(r => r.totalTime === 0)) {
-        const sortedDay = [...dayScore.results].sort((a, b) => a.totalTime - b.totalTime);
-        const winner = sortedDay[0];
-
-        if (winner && winner.totalTime > 0) {
-          const weight = dayScore.dayOfWeek === 0 ? 3 : 1;
-          weeklyWins[winner.name] += weight;
-        }
-      }
-    }
-
-    return Object.entries(weeklyWins).map(([name, wins]) => ({ name, wins })).sort((a, b) => b.wins - a.wins);
+    return calculateWeeklyPodium(players, scores, selectedDate);
   }, [scores, selectedDate, players]);
 
   const monthlyPodium = useMemo(() => {
-    if (!players) return null;
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth();
-    const monthlyWins = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
-
-    Object.values(scores).forEach(score => {
-      const scoreDate = new Date(score.date + 'T12:00:00');
-      if (scoreDate.getFullYear() === year && scoreDate.getMonth() === month) {
-        if (score.results && !score.results.every(r => r.totalTime === 0)) {
-          const sortedDay = [...score.results].sort((a, b) => a.totalTime - b.totalTime);
-          const winner = sortedDay[0];
-          if (winner && winner.totalTime > 0) {
-            const weight = score.dayOfWeek === 0 ? 3 : 1;
-            monthlyWins[winner.name] += weight;
-          }
-        }
-      }
-    });
-    return Object.entries(monthlyWins)
-      .map(([name, wins]) => ({ name, wins }))
-      .sort((a, b) => b.wins - a.wins);
+    return calculateMonthlyPodium(players, scores, selectedDate);
   }, [scores, selectedDate, players]);
 
   // --- This effect fills the times when the date changes ---
@@ -323,20 +245,7 @@ export default function App() {
     }
   }, [dateString, scores]);
 
-  const getWeekRange = () => {
-    const monday = new Date(selectedDate);
-    const day = monday.getDay();
-    const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
-    monday.setDate(diff);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    const format = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    return `${format(monday)} - ${format(sunday)}`;
-  };
 
-  const getMonthName = () => {
-    return selectedDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  };
 
   // --- State-Based Rendering ---
   if (appStatus !== 'READY' || !user || !players) {
@@ -441,7 +350,7 @@ export default function App() {
                       {view === 'weekly' && (
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
                           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">Ranking da Semana</h2>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{getWeekRange()}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">{getWeekRange(selectedDate)}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
                           {weeklyPodium && weeklyPodium.some(p => p.wins > 0) ? (
                             <ul>{weeklyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
@@ -454,7 +363,7 @@ export default function App() {
                       {view === 'monthly' && (
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
                           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-1">Ranking Mensal</h2>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 capitalize">{getMonthName()}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 capitalize">{getMonthName(selectedDate)}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
                           {monthlyPodium && monthlyPodium.some(p => p.wins > 0) ? (
                             <ul>{monthlyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
