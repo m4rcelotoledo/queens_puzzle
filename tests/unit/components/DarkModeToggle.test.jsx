@@ -48,7 +48,7 @@ describe('DarkModeToggle', () => {
     expect(defaultProps.setIsDarkMode).toHaveBeenCalledWith(true);
   });
 
-    test('deve alternar entre modo claro e escuro', async () => {
+  test('deve alternar entre modo claro e escuro', async () => {
     const user = userEvent.setup();
     const { rerender } = render(<DarkModeToggle {...defaultProps} />);
 
