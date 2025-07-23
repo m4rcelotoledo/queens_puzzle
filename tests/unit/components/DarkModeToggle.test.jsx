@@ -82,7 +82,7 @@ describe('DarkModeToggle', () => {
     expect(toggleButton).not.toBeDisabled();
   });
 
-    test('deve ter classes CSS corretas', () => {
+  test('deve ter classes CSS corretas', () => {
     render(<DarkModeToggle {...defaultProps} />);
 
     const toggleButton = screen.getByRole('button');
