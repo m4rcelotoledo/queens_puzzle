@@ -82,19 +82,28 @@ export const calculateDailyPodium = (dayScore) => {
  * @returns {Array} Array of ordered players
  */
 export const calculateWeeklyPodium = (players, scores, selectedDate) => {
+  const MILLISECONDS_PER_MINUTE = 60000;
+  const DAYS_IN_WEEK = 7;
+  const SUNDAY_DAY_OF_WEEK = 0;
+  const MONDAY_DAY_OF_WEEK = 1;
+
+  // Constants for Monday calculation
+  const DAYS_TO_SUNDAY = -6;  // Days to subtract when current day is Sunday
+  const DAYS_TO_MONDAY = 1;   // Days to subtract for other days of the week
+
   if (!players) return null;
 
   // Force UTC timezone to avoid CI/local differences
-  const utcDate = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * 60000));
+  const utcDate = new Date(selectedDate.getTime() - (selectedDate.getTimezoneOffset() * MILLISECONDS_PER_MINUTE));
   const startOfWeek = new Date(utcDate);
   const dayOfWeek = startOfWeek.getDay();
-  const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  const diffToMonday = startOfWeek.getDate() - dayOfWeek + (dayOfWeek === SUNDAY_DAY_OF_WEEK ? DAYS_TO_SUNDAY : DAYS_TO_MONDAY);
   startOfWeek.setDate(diffToMonday);
 
   const weeklyWins = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
   const weeklyTimes = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
 
-  for (let i = 0; i < 7; i++) {
+  for (let i = 0; i < DAYS_IN_WEEK; i++) {
     const currentDate = new Date(startOfWeek);
     currentDate.setDate(startOfWeek.getDate() + i);
     const currentDateString = currentDate.toISOString().split('T')[0];
@@ -105,7 +114,7 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
       const winner = sortedDay[0];
 
       if (winner && winner.totalTime > 0) {
-        const weight = dayScore.dayOfWeek === 0 ? 3 : 1;
+        const weight = dayScore.dayOfWeek === SUNDAY_DAY_OF_WEEK ? 3 : 1;
         weeklyWins[winner.name] += weight;
       }
 
@@ -150,6 +159,10 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
 export const calculateMonthlyPodium = (players, scores, selectedDate) => {
   if (!players) return null;
 
+  const SUNDAY_DAY_OF_WEEK = 0;
+  const SUNDAY_WEIGHT = 3;
+  const WEEKDAY_WEIGHT = 1;
+
   const year = selectedDate.getFullYear();
   const month = selectedDate.getMonth();
   const monthlyWins = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
@@ -162,7 +175,7 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
         const sortedDay = [...score.results].sort((a, b) => a.totalTime - b.totalTime);
         const winner = sortedDay[0];
         if (winner && winner.totalTime > 0) {
-          const weight = score.dayOfWeek === 0 ? 3 : 1;
+          const weight = score.dayOfWeek === SUNDAY_DAY_OF_WEEK ? SUNDAY_WEIGHT : WEEKDAY_WEIGHT;
           monthlyWins[winner.name] += weight;
         }
 
@@ -223,12 +236,19 @@ export const getWeekRange = (selectedDate) => {
   if (!selectedDate || !(selectedDate instanceof Date)) {
     return '';
   }
+
+  // Constants for week calculation
+  const SUNDAY_DAY_OF_WEEK = 0;
+  const DAYS_TO_SUNDAY = -6;  // Days to subtract when current day is Sunday
+  const DAYS_TO_MONDAY = 1;   // Days to subtract for other days of the week
+  const DAYS_IN_WEEK = 7;
+
   const monday = new Date(selectedDate);
   const day = monday.getDay();
-  const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
+  const diff = monday.getDate() - day + (day === SUNDAY_DAY_OF_WEEK ? DAYS_TO_SUNDAY : DAYS_TO_MONDAY);
   monday.setDate(diff);
   const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
+  sunday.setDate(monday.getDate() + (DAYS_IN_WEEK - 1));
   const format = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
   return `${format(monday)} - ${format(sunday)}`;
 };
