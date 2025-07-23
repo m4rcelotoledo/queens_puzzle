@@ -412,7 +412,8 @@ describe('calculateWeeklyPodium', () => {
       }
     };
 
-    const podium = calculateWeeklyPodium(mockPlayers, mockScores, selectedDate);
+    const players = ['João', 'Maria', 'Pedro'];
+    const podium = calculateWeeklyPodium(players, mockScores, selectedDate);
 
     // Check basic structure
     expect(podium).toBeInstanceOf(Array);
@@ -471,7 +472,8 @@ describe('calculateWeeklyPodium', () => {
       }
     };
 
-    const podium = calculateWeeklyPodium(mockPlayers, mockScores, selectedDate);
+    const players = ['João', 'Maria', 'Pedro'];
+    const podium = calculateWeeklyPodium(players, mockScores, selectedDate);
 
     // Check basic structure
     expect(podium).toBeInstanceOf(Array);
@@ -531,7 +533,8 @@ describe('calculateWeeklyPodium', () => {
       }
     };
 
-    const podium = calculateWeeklyPodium(mockPlayers, mockScores, selectedDate);
+    const players = ['João', 'Maria', 'Pedro'];
+    const podium = calculateWeeklyPodium(players, mockScores, selectedDate);
 
     // Check basic structure
     expect(podium).toBeInstanceOf(Array);
@@ -702,11 +705,13 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle exact production scenario correctly', () => {
     // Test the exact scenario from production with correct dates
-    // Using dates that are in the same week
-    const selectedDate = new Date('2024-07-22'); // Tuesday
+    // Using dates that are guaranteed to be in the same week
+    const selectedDate = new Date('2024-07-22T12:00:00.000Z'); // Monday UTC
+
+    // Use dates that are definitely in the same week (July 22-28, 2024)
     const mockScores = {
-      '2024-07-16': { // Monday - Jhonny wins
-        date: '2024-07-16',
+      '2024-07-22': { // Monday - Jhonny wins
+        date: '2024-07-22',
         dayOfWeek: 1,
         results: [
           { name: 'James', time: 31, bonusTime: 0, totalTime: 31 },
@@ -714,8 +719,8 @@ describe('calculateWeeklyPodium', () => {
           { name: 'Marcelo', time: 19, bonusTime: 0, totalTime: 19 }
         ]
       },
-      '2024-07-17': { // Tuesday - Marcelo wins
-        date: '2024-07-17',
+      '2024-07-23': { // Tuesday - Marcelo wins
+        date: '2024-07-23',
         dayOfWeek: 2,
         results: [
           { name: 'James', time: 75, bonusTime: 0, totalTime: 75 },
@@ -723,9 +728,9 @@ describe('calculateWeeklyPodium', () => {
           { name: 'Marcelo', time: 44, bonusTime: 0, totalTime: 44 }
         ]
       },
-      '2024-07-22': { // Tuesday - All players active
-        date: '2024-07-22',
-        dayOfWeek: 2,
+      '2024-07-24': { // Wednesday - All players active
+        date: '2024-07-24',
+        dayOfWeek: 3,
         results: [
           { name: 'James', time: 80, bonusTime: 0, totalTime: 80 },
           { name: 'Jhonny', time: 70, bonusTime: 0, totalTime: 70 },
@@ -751,7 +756,7 @@ describe('calculateWeeklyPodium', () => {
     expect(marcelo).toBeDefined();
 
     // Expected results based on production scenario:
-    // Marcelo: 2 wins (Tuesday + Tuesday), total time: 19+44+60 = 123s
+    // Marcelo: 2 wins (Tuesday + Wednesday), total time: 19+44+60 = 123s
     // Jhonny: 1 win (Monday), total time: 15+59+70 = 144s
     // James: 0 wins, total time: 31+75+80 = 186s
 
