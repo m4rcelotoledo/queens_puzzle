@@ -474,7 +474,11 @@ describe('PlayerManagerModal', () => {
   });
 
   it('testa erro ao salvar jogadores', async () => {
-    const mockOnSetupCompleteWithError = jest.fn().mockRejectedValue(new Error('Erro de teste'));
+    // Mock console.error to prevent it from appearing in test output
+    const originalConsoleError = console.error;
+    console.error = jest.fn();
+
+    const mockOnSetupCompleteWithError = jest.fn().mockRejectedValue(new Error('Test error'));
 
     render(
       <PlayerManagerModal
@@ -490,6 +494,12 @@ describe('PlayerManagerModal', () => {
     await waitFor(() => {
       expect(mockOnSetupCompleteWithError).toHaveBeenCalled();
     });
+
+    // Verify that console.error was called
+    expect(console.error).toHaveBeenCalledWith('Error saving players:', expect.any(Error));
+
+    // Restore console.error
+    console.error = originalConsoleError;
   });
 
   it('testa validação com erros', async () => {
