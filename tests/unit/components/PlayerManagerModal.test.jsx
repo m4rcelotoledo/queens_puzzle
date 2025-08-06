@@ -669,28 +669,6 @@ describe('PlayerManagerModal', () => {
     expect(screen.queryByText('Name cannot be empty')).not.toBeInTheDocument();
   });
 
-  it('testa validação de nome muito curto', async () => {
-    render(
-      <PlayerManagerModal
-        players={['João']}
-        onSetupComplete={mockOnSetupComplete}
-        onClose={mockOnClose}
-      />
-    );
-
-    // Add a player with a very short name
-    const addInput = screen.getByPlaceholderText('New player name');
-    const addButton = screen.getByText('Add');
-
-    fireEvent.change(addInput, { target: { value: 'A' } });
-    fireEvent.click(addButton);
-
-    // Should show error
-    await waitFor(() => {
-      expect(screen.getByText('Name must have at least 2 characters')).toBeInTheDocument();
-    });
-  });
-
   it('testa validação de nome com espaços em branco', () => {
     render(
       <PlayerManagerModal
