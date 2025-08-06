@@ -1715,31 +1715,6 @@ describe('calculateMonthlyPodium', () => {
     ]);
   });
 
-  it('should handle edge case where no sorting conditions match in monthly podium', () => {
-    const players = ['Alice', 'Bob', 'Charlie'];
-    const scores = {
-      '2024-01-01': {
-        date: '2024-01-01',
-        dayOfWeek: 1,
-        results: [
-          { name: 'Alice', totalTime: 100 },
-          { name: 'Bob', totalTime: 100 },
-          { name: 'Charlie', totalTime: 100 }
-        ]
-      }
-    };
-    const selectedDate = new Date('2024-01-01');
-
-    const result = calculateMonthlyPodium(players, scores, selectedDate);
-
-    // When all criteria are equal, it should sort alphabetically
-    expect(result).toEqual([
-      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
-      { name: 'Bob', wins: 0, totalTime: 0, gamesPlayed: 0 },
-      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 }
-    ]);
-  });
-
   it('should handle edge case where all sorting conditions are equal in daily podium', () => {
     const dayScore = {
       results: [

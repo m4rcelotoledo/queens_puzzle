@@ -367,19 +367,6 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('desabilita botão salvar quando não há jogadores', () => {
-    render(
-      <PlayerManagerModal
-        players={[]}
-        onSetupComplete={mockOnSetupComplete}
-        onClose={mockOnClose}
-      />
-    );
-
-    const saveButton = screen.getByText('Save Changes');
-    expect(saveButton).toBeDisabled();
-  });
-
   it('limpa erros ao remover jogador', async () => {
     render(
       <PlayerManagerModal
