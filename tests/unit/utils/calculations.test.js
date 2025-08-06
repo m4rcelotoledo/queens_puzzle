@@ -1586,6 +1586,228 @@ describe('calculateMonthlyPodium', () => {
     const podium = calculateMonthlyPodium(null, mockScores, selectedDate);
     expect(podium).toBeNull();
   });
+
+  it('should handle edge case where no sorting conditions match in monthly podium', () => {
+    const players = ['Alice', 'Bob', 'Charlie'];
+    const scores = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        results: [
+          { name: 'Alice', totalTime: 100 },
+          { name: 'Bob', totalTime: 100 },
+          { name: 'Charlie', totalTime: 100 }
+        ]
+      }
+    };
+    const selectedDate = new Date('2024-01-01');
+
+    const result = calculateMonthlyPodium(players, scores, selectedDate);
+
+    expect(result).toEqual([
+      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Bob', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 }
+    ]);
+  });
+
+  it('should handle fallback alphabetical sorting in daily podium', () => {
+    const dayScore = {
+      results: [
+        { name: 'Charlie', totalTime: 0 },
+        { name: 'Alice', totalTime: 0 },
+        { name: 'Bob', totalTime: 0 }
+      ]
+    };
+
+    const result = calculateDailyPodium(dayScore);
+
+    // When all times are 0, returns null
+    expect(result).toBeNull();
+  });
+
+  it('should handle fallback alphabetical sorting in weekly podium', () => {
+    const players = ['Charlie', 'Alice', 'Bob'];
+    const scores = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        results: [
+          { name: 'Charlie', totalTime: 0 },
+          { name: 'Alice', totalTime: 0 },
+          { name: 'Bob', totalTime: 0 }
+        ]
+      }
+    };
+    const selectedDate = new Date('2024-01-01');
+
+    const result = calculateWeeklyPodium(players, scores, selectedDate);
+
+    // When all times are 0, returns empty array
+    expect(result).toEqual([]);
+  });
+
+  it('should handle fallback alphabetical sorting in monthly podium', () => {
+    const players = ['Charlie', 'Alice', 'Bob'];
+    const scores = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        results: [
+          { name: 'Charlie', totalTime: 0 },
+          { name: 'Alice', totalTime: 0 },
+          { name: 'Bob', totalTime: 0 }
+        ]
+      }
+    };
+    const selectedDate = new Date('2024-01-01');
+
+    const result = calculateMonthlyPodium(players, scores, selectedDate);
+
+    expect(result).toEqual([
+      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Bob', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 }
+    ]);
+  });
+
+  it('should handle edge case where no sorting conditions match in daily podium', () => {
+    const dayScore = {
+      results: [
+        { name: 'Alice', totalTime: 100 },
+        { name: 'Bob', totalTime: 100 },
+        { name: 'Charlie', totalTime: 100 }
+      ]
+    };
+
+    const result = calculateDailyPodium(dayScore);
+
+    // When all times are equal, it should sort alphabetically
+    expect(result).toEqual([
+      { name: 'Alice', totalTime: 100 },
+      { name: 'Bob', totalTime: 100 },
+      { name: 'Charlie', totalTime: 100 }
+    ]);
+  });
+
+  it('should handle edge case where no sorting conditions match in weekly podium', () => {
+    const players = ['Alice', 'Bob', 'Charlie'];
+    const scores = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        results: [
+          { name: 'Alice', totalTime: 100 },
+          { name: 'Bob', totalTime: 100 },
+          { name: 'Charlie', totalTime: 100 }
+        ]
+      }
+    };
+    const selectedDate = new Date('2024-01-01');
+
+    const result = calculateWeeklyPodium(players, scores, selectedDate);
+
+    // When all criteria are equal, it should sort alphabetically
+    expect(result).toEqual([
+      { name: 'Alice', wins: 1, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Bob', wins: 0, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Charlie', wins: 0, totalTime: 100, gamesPlayed: 1 }
+    ]);
+  });
+
+  it('should handle edge case where no sorting conditions match in monthly podium', () => {
+    const players = ['Alice', 'Bob', 'Charlie'];
+    const scores = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        results: [
+          { name: 'Alice', totalTime: 100 },
+          { name: 'Bob', totalTime: 100 },
+          { name: 'Charlie', totalTime: 100 }
+        ]
+      }
+    };
+    const selectedDate = new Date('2024-01-01');
+
+    const result = calculateMonthlyPodium(players, scores, selectedDate);
+
+    // When all criteria are equal, it should sort alphabetically
+    expect(result).toEqual([
+      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Bob', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 }
+    ]);
+  });
+
+  it('should handle edge case where all sorting conditions are equal in daily podium', () => {
+    const dayScore = {
+      results: [
+        { name: 'Alice', totalTime: 100 },
+        { name: 'Bob', totalTime: 100 },
+        { name: 'Charlie', totalTime: 100 }
+      ]
+    };
+
+    const result = calculateDailyPodium(dayScore);
+
+    // When all times are equal, it should sort alphabetically
+    expect(result).toEqual([
+      { name: 'Alice', totalTime: 100 },
+      { name: 'Bob', totalTime: 100 },
+      { name: 'Charlie', totalTime: 100 }
+    ]);
+  });
+
+  it('should handle edge case where all sorting conditions are equal in weekly podium', () => {
+    const players = ['Alice', 'Bob', 'Charlie'];
+    const scores = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        results: [
+          { name: 'Alice', totalTime: 100 },
+          { name: 'Bob', totalTime: 100 },
+          { name: 'Charlie', totalTime: 100 }
+        ]
+      }
+    };
+    const selectedDate = new Date('2024-01-01');
+
+    const result = calculateWeeklyPodium(players, scores, selectedDate);
+
+    // When all criteria are equal, it should sort alphabetically
+    expect(result).toEqual([
+      { name: 'Alice', wins: 1, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Bob', wins: 0, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Charlie', wins: 0, totalTime: 100, gamesPlayed: 1 }
+    ]);
+  });
+
+  it('should handle edge case where all sorting conditions are equal in monthly podium', () => {
+    const players = ['Alice', 'Bob', 'Charlie'];
+    const scores = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        results: [
+          { name: 'Alice', totalTime: 100 },
+          { name: 'Bob', totalTime: 100 },
+          { name: 'Charlie', totalTime: 100 }
+        ]
+      }
+    };
+    const selectedDate = new Date('2024-01-01');
+
+    const result = calculateMonthlyPodium(players, scores, selectedDate);
+
+    // When all criteria are equal, it should sort alphabetically
+    expect(result).toEqual([
+      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Bob', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 }
+    ]);
+  });
 });
 
 describe('validateTimes', () => {
