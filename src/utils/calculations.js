@@ -206,7 +206,7 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
   const monthlyGames = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
 
   Object.values(scores).forEach(score => {
-    const scoreDate = new Date(score.date + 'T12:00:00');
+    const scoreDate = new Date(score.date + 'T12:00:00Z');
     if (scoreDate.getFullYear() === year && scoreDate.getMonth() === month) {
       if (score.results && !score.results.every(r => r.totalTime === 0)) {
         const sortedDay = [...score.results].sort((a, b) => a.totalTime - b.totalTime);
