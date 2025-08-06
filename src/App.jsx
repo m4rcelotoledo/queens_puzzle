@@ -10,6 +10,7 @@ import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import Notification from './components/Notification';
 import PlayerSetupModal from './components/PlayerSetupModal';
+import PlayerManagerModal from './components/PlayerManagerModal';
 import PlayerStatsPage from './components/PlayerStatsPage';
 import PodiumIcon from './components/PodiumIcon';
 import TimeInputForm from './components/TimeInputForm';
@@ -44,6 +45,7 @@ export default function App() {
 
   const [currentView, setCurrentView] = useState('scoreboard');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showPlayerManager, setShowPlayerManager] = useState(false);
 
   const appId = 'queens-puzzle';
 
@@ -102,7 +104,8 @@ export default function App() {
     const playersDocRef = doc(db, `artifacts/${appId}/config`, 'players');
     const unsubPlayers = onSnapshot(playersDocRef, (doc) => {
       if (doc.exists()) {
-        setPlayers(doc.data().names);
+        const playerNames = doc.data().names;
+        setPlayers(playerNames);
         setAppStatus('READY');
       } else {
         // Only admins can configure players
@@ -111,7 +114,7 @@ export default function App() {
         }
       }
     }, (error) => {
-      console.error("Erro ao buscar jogadores:", error);
+      console.error("Error fetching players:", error);
       setNotification({ message: 'Erro ao carregar dados dos jogadores.', type: 'error' });
       setAppStatus('LOGIN');
     });
@@ -145,7 +148,7 @@ export default function App() {
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
-      console.error("Erro ao fazer login com Google:", error);
+      console.error("Error logging in with Google:", error);
       setAuthError("Ocorreu um erro durante o login.");
     }
   };
@@ -157,12 +160,19 @@ export default function App() {
   // --- Data Manipulation Logic ---
   const handlePlayerSetup = async (playerNames) => {
     if (!db) return;
+
     const playersDocRef = doc(db, `artifacts/${appId}/config`, 'players');
+
     try {
       await setDoc(playersDocRef, { names: playerNames });
+
+      // Update local state immediately for better UX
+      setPlayers(playerNames);
+
       setNotification({ message: 'Jogadores salvos com sucesso!', type: 'success' });
+      setShowPlayerManager(false); // Close the modal after saving
     } catch (error) {
-      console.error("Erro ao configurar jogadores:", error);
+      console.error("Error setting up players:", error);
       setNotification({ message: 'Falha ao salvar jogadores.', type: 'error' });
     }
   };
@@ -209,7 +219,7 @@ export default function App() {
       setTimes({});
 
     } catch (error) {
-      console.error("Erro ao salvar pontuação: ", error);
+      console.error("Error saving score: ", error);
       setNotification({ message: 'Falha ao salvar o placar.', type: 'error' });
     }
   };
@@ -262,6 +272,14 @@ export default function App() {
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans p-4 sm:p-6 lg:p-8 transition-colors duration-300">
       <AnimatePresence>
         {notification.message && <Notification message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: '' })} />}
+        {showPlayerManager && isAllowed && (
+          <PlayerManagerModal
+            players={players}
+            scores={scores}
+            onSetupComplete={handlePlayerSetup}
+            onClose={() => setShowPlayerManager(false)}
+          />
+        )}
       </AnimatePresence>
       <div className="max-w-6xl mx-auto">
         <header className="flex justify-between items-center mb-8">
@@ -293,9 +311,24 @@ export default function App() {
               >
                 {/* Left Column - VISIBLE TO EVERYONE */}
                 <div className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-                  <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-                    {isAllowed ? 'Registrar Tempos' : 'Explorar Datas'}
-                  </h2>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+                      {isAllowed ? 'Registrar Tempos' : 'Explorar Datas'}
+                    </h2>
+                    {isAllowed && (
+                      <button
+                        onClick={() => setShowPlayerManager(true)}
+                        className="px-3 py-2 text-sm bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg hover:bg-indigo-200 dark:hover:bg-indigo-900/50 transition-colors flex items-center space-x-1 cursor-pointer"
+                        title="Gerenciar jogadores"
+                        type="button"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                        <span>Gerenciar</span>
+                      </button>
+                    )}
+                  </div>
 
                   <div className="mb-4">
                     <label htmlFor="date-picker" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
