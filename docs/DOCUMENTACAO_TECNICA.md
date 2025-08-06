@@ -69,6 +69,47 @@ graph TD
 
 ## 🔧 Componentes Principais
 
+## ⚠️ Boas Práticas e Lições Aprendidas
+
+### Problemas de Timezone
+
+#### Contexto
+Durante o desenvolvimento, encontramos problemas críticos relacionados à interpretação de datas em diferentes ambientes (local vs CI). Isso causava falhas nos testes que passavam localmente mas falhavam no GitHub Actions.
+
+#### Solução Implementada
+```javascript
+// ❌ PROBLEMÁTICO: Interpretação dependente do timezone local
+const date = new Date('2024-01-01');
+// Pode ser interpretado como 2023-12-31 em UTC
+
+// ✅ SOLUÇÃO: Especificação explícita de timezone UTC
+const date = new Date('2024-01-01T12:00:00Z');
+// Sempre interpretado como 2024-01-01 em UTC
+```
+
+#### Impacto no Código
+- **Função `calculateMonthlyPodium`**: Corrigida para usar timezone UTC
+- **Testes**: Todos os testes de data atualizados para usar timezone explícito
+- **Consistência**: Garantida entre ambientes local e CI
+
+#### Recomendações para Desenvolvimento
+1. **Sempre especificar timezone** ao criar datas
+2. **Usar formato ISO 8601** com timezone UTC (`T12:00:00Z`)
+3. **Testar em ambiente CI** regularmente
+4. **Não confiar apenas** em testes locais
+
+### Testes Duplicados
+
+#### Problema Identificado
+O GitHub Copilot identificou corretamente testes duplicados que causavam confusão e manutenção desnecessária.
+
+#### Solução
+- **Remoção de testes duplicados**
+- **Consolidação de cenários similares**
+- **Revisão regular** da base de testes
+
+---
+
 ### App.jsx - Componente Principal
 
 #### Estados Principais
