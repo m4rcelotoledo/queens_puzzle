@@ -1600,14 +1600,15 @@ describe('calculateMonthlyPodium', () => {
         ]
       }
     };
-    const selectedDate = new Date('2024-01-01');
+    const selectedDate = new Date('2024-01-01T12:00:00Z');
 
     const result = calculateMonthlyPodium(players, scores, selectedDate);
 
+    // When all times are equal, it should sort alphabetically and count the times
     expect(result).toEqual([
-      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
-      { name: 'Bob', wins: 0, totalTime: 0, gamesPlayed: 0 },
-      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 }
+      { name: 'Alice', wins: 1, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Bob', wins: 0, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Charlie', wins: 0, totalTime: 100, gamesPlayed: 1 }
     ]);
   });
 
@@ -1639,7 +1640,7 @@ describe('calculateMonthlyPodium', () => {
         ]
       }
     };
-    const selectedDate = new Date('2024-01-01');
+    const selectedDate = new Date('2024-01-01T12:00:00Z');
 
     const result = calculateWeeklyPodium(players, scores, selectedDate);
 
@@ -1660,7 +1661,7 @@ describe('calculateMonthlyPodium', () => {
         ]
       }
     };
-    const selectedDate = new Date('2024-01-01');
+    const selectedDate = new Date('2024-01-01T12:00:00Z');
 
     const result = calculateMonthlyPodium(players, scores, selectedDate);
 
@@ -1772,15 +1773,15 @@ describe('calculateMonthlyPodium', () => {
         ]
       }
     };
-    const selectedDate = new Date('2024-01-01');
+    const selectedDate = new Date('2024-01-01T12:00:00Z');
 
     const result = calculateMonthlyPodium(players, scores, selectedDate);
 
-    // When all criteria are equal, it should sort alphabetically
+    // When all criteria are equal, it should sort alphabetically and count the times
     expect(result).toEqual([
-      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
-      { name: 'Bob', wins: 0, totalTime: 0, gamesPlayed: 0 },
-      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 }
+      { name: 'Alice', wins: 1, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Bob', wins: 0, totalTime: 100, gamesPlayed: 1 },
+      { name: 'Charlie', wins: 0, totalTime: 100, gamesPlayed: 1 }
     ]);
   });
 });
