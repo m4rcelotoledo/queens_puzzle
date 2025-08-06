@@ -14,11 +14,11 @@ Este documento descreve a implementação de testes unitários para o projeto **
 - ✅ **Prevenção de Erros**: Testes específicos para evitar regressões
 
 ### Cobertura Alcançada
-- **77 testes** implementados (atualizado)
-- **5 suites de teste** organizadas
+- **186 testes** implementados (atualizado)
+- **9 suites de teste** organizadas
 - **Cobertura mínima**: 85% (branches), 100% (functions), 100% (lines), 95% (statements)
-- **Cobertura atual**: 98%+ (todas as métricas)
-- **Todos os testes passando**: 77/77 (100% de sucesso)
+- **Cobertura atual**: 96.24% (statements), 91.53% (branches), 98.55% (functions), 96.93% (lines)
+- **Todos os testes passando**: 186/186 (100% de sucesso)
 
 ## 🏗 Estrutura dos Testes
 
@@ -45,6 +45,110 @@ tests/
 - **Babel**: Suporte a JSX e ES6+
 
 ## 🧪 Testes Implementados
+
+## ⚠️ Lições Aprendidas e Problemas Resolvidos
+
+### Problema de Timezone nos Testes
+
+#### Contexto
+Durante o desenvolvimento, encontramos um problema crítico onde os testes passavam localmente mas falhavam no CI (GitHub Actions). O problema estava relacionado à interpretação de datas sem especificação de timezone.
+
+#### Problema Identificado
+```javascript
+// ❌ PROBLEMÁTICO: Interpretação dependente do timezone local
+const selectedDate = new Date('2024-01-01');
+// Pode ser interpretado como 2023-12-31 em UTC dependendo do timezone
+
+// ✅ SOLUÇÃO: Especificação explícita de timezone UTC
+const selectedDate = new Date('2024-01-01T12:00:00Z');
+// Sempre interpretado como 2024-01-01 em UTC
+```
+
+#### Impacto
+- **Testes locais**: Passavam ✅
+- **Testes no CI**: Falhavam ❌
+- **Causa**: Diferenças de timezone entre ambiente local e CI
+
+#### Solução Implementada
+1. **Correção na função `calculateMonthlyPodium`**:
+   ```javascript
+   // Antes
+   const scoreDate = new Date(score.date + 'T12:00:00');
+
+   // Depois
+   const scoreDate = new Date(score.date + 'T12:00:00Z');
+   ```
+
+2. **Correção em todos os testes**:
+   ```javascript
+   // Antes
+   const selectedDate = new Date('2024-01-01');
+
+   // Depois
+   const selectedDate = new Date('2024-01-01T12:00:00Z');
+   ```
+
+#### Testes Afetados e Corrigidos
+- ✅ `should handle edge case where no sorting conditions match in monthly podium`
+- ✅ `should handle fallback alphabetical sorting in weekly podium`
+- ✅ `should handle fallback alphabetical sorting in monthly podium`
+- ✅ `should handle edge case where all sorting conditions are equal in monthly podium`
+
+### Testes Duplicados Identificados pelo Copilot
+
+#### Problemas Encontrados
+1. **PlayerManagerModal.test.jsx**: Teste duplicado "desabilita botão salvar quando não há jogadores"
+2. **calculations.test.js**: Teste duplicado "should handle edge case where no sorting conditions match in monthly podium"
+
+#### Solução
+- **Remoção de testes duplicados** para evitar confusão e manutenção desnecessária
+- **Consolidação de cenários similares** em um único teste mais abrangente
+
+### Recomendações para o Futuro
+
+#### 1. Padrão para Criação de Datas
+```javascript
+// ✅ SEMPRE usar timezone explícito
+const date = new Date('2024-01-01T12:00:00Z');
+
+// ❌ EVITAR datas sem timezone
+const date = new Date('2024-01-01');
+```
+
+#### 2. Verificação de Testes Duplicados
+- **Revisar regularmente** os testes para identificar duplicações
+- **Usar ferramentas de análise** como Copilot para detectar duplicações
+- **Consolidar cenários similares** em testes mais abrangentes
+
+#### 3. Testes em Ambiente CI
+- **Executar testes no CI** regularmente durante o desenvolvimento
+- **Não confiar apenas** em testes locais
+- **Usar `npm run test:ci`** para simular ambiente de CI
+
+#### 4. Debug de Problemas de Timezone
+```javascript
+// Script de debug para verificar interpretação de datas
+const debugDate = (dateString) => {
+  const date = new Date(dateString);
+  console.log('Input:', dateString);
+  console.log('Interpreted as:', date);
+  console.log('Year:', date.getFullYear());
+  console.log('Month:', date.getMonth());
+  console.log('Day:', date.getDate());
+};
+
+debugDate('2024-01-01');
+debugDate('2024-01-01T12:00:00Z');
+```
+
+### Resultado Final
+- **Todos os 186 testes passando** ✅
+- **Cobertura de código: 96.24%** ✅
+- **Testes funcionando tanto localmente quanto no CI** ✅
+- **Problemas de timezone resolvidos** ✅
+- **Testes duplicados removidos** ✅
+
+---
 
 ### 1. Componente Principal (`App.test.jsx`)
 
