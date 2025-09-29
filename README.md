@@ -1,5 +1,7 @@
 # 🏆 Queens Puzzle - Sistema de Ranking Inteligente
 
+> **English speakers:** You can read this README in English [here](./README_EN.md)
+
 [![Netlify Status](https://api.netlify.com/api/v1/badges/89cdb707-cd0c-411d-9701-fa89476e5633/deploy-status)](https://app.netlify.com/projects/queens-puzzle/deploys)
 
 Um sistema de ranking para o jogo Queens Puzzle com lógica de ordenação inteligente baseada em pontuação por vitórias, número de partidas jogadas e tempo total.
@@ -160,10 +162,12 @@ Mesmo com tempo pior, Marcelo fica em primeiro por ter jogado mais vezes.
 
 ## 📊 **Cobertura de Testes**
 
-- **93 testes** passando ✅
-- **5 suites** de teste
-- **97.98%** de cobertura de statements
-- **99.2%** de cobertura de lines
+- **186 testes** passando ✅
+- **9 suites** de teste
+- **96.24%** de cobertura de statements
+- **91.53%** de cobertura de branches
+- **98.55%** de cobertura de functions
+- **96.93%** de cobertura de lines
 - **100%** de cobertura das funcionalidades críticas
 
 ## 🔧 **Arquitetura**
@@ -216,7 +220,7 @@ const year = selectedDate.getFullYear();
 const month = selectedDate.getMonth();
 
 Object.values(scores).forEach(score => {
-  const scoreDate = new Date(score.date + 'T12:00:00');
+  const scoreDate = new Date(score.date + 'T12:00:00Z');
   if (scoreDate.getFullYear() === year && scoreDate.getMonth() === month) {
     // Processa apenas scores deste mês
   }
@@ -336,6 +340,14 @@ queens_puzzle/
 - **Responsividade:** Funciona em mobile e desktop
 
 ## 📝 **Changelog**
+
+### **v2.2.0 - Documentation and Testing Improvements**
+- ✨ **README in English** - Complete English version available
+- ✨ **Updated test coverage** - 186 tests (96.24% coverage)
+- ✨ **Timezone issues resolved** - Tests working in both local and CI environments
+- ✨ **Duplicate tests removed** - Cleaner test suite
+- 📚 **Enhanced documentation** - Better examples and technical details
+- 🧪 **Improved test reliability** - Consistent behavior across environments
 
 ### **v2.1.0 - Nova Regra de Desempate por Tempo Total**
 - ✨ Implementado desempate por tempo total de **TODOS os dias** (não apenas vitórias)
