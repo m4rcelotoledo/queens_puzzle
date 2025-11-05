@@ -1850,6 +1850,30 @@ describe('calculateMonthlyPodium', () => {
     expect(podium[2].name).toBe('James');
     expect(podium[2].wins).toBe(0);
   });
+
+  test('should order zero-time players alphabetically within monthly daily sort', () => {
+    const players = ['Alice', 'Bob', 'Charlie'];
+    const selectedDate = new Date('2024-01-15T12:00:00Z');
+    const scores = {
+      '2024-01-10': {
+        date: '2024-01-10',
+        dayOfWeek: 3, // Wednesday
+        results: [
+          { name: 'Bob', totalTime: 10 },
+          { name: 'Charlie', totalTime: 0 },
+          { name: 'Alice', totalTime: 0 },
+        ],
+      },
+    };
+
+    const result = calculateMonthlyPodium(players, scores, selectedDate);
+
+    expect(result).toEqual([
+      { name: 'Bob', wins: 1, totalTime: 10, gamesPlayed: 1 },
+      { name: 'Alice', wins: 0, totalTime: 0, gamesPlayed: 0 },
+      { name: 'Charlie', wins: 0, totalTime: 0, gamesPlayed: 0 },
+    ]);
+  });
 });
 
 describe('validateTimes', () => {
@@ -1980,5 +2004,106 @@ describe('getMonthName', () => {
     // (although this shouldn't happen in the correct code)
     expect(() => getMonthName()).not.toThrow();
     expect(getMonthName()).toBe('');
+  });
+});
+
+describe('Tie-breaking scenarios', () => {
+  const players = ['Marcelo', 'Jhonny', 'James'];
+  const selectedDate = new Date('2025-11-01T12:00:00Z'); // Saturday (UTC noon to avoid TZ drift)
+
+  test('Scenario a: One winner, two tied', () => {
+    const mockScores = {
+      '2025-11-01': {
+        date: '2025-11-01',
+        dayOfWeek: 6,
+        results: [
+          { name: 'Marcelo', totalTime: 10 }, // Winner
+          { name: 'Jhonny', totalTime: 20 },
+          { name: 'James', totalTime: 20 },
+        ],
+      },
+    };
+
+    // Daily
+    const dailyPodium = calculateDailyPodium(mockScores['2025-11-01']);
+    expect(dailyPodium.map(p => p.name)).toEqual(['Marcelo', 'James', 'Jhonny']);
+
+    // Weekly
+    const weeklyPodium = calculateWeeklyPodium(players, mockScores, selectedDate);
+    expect(weeklyPodium[0].name).toBe('Marcelo');
+    expect(weeklyPodium[0].wins).toBe(1);
+    expect(weeklyPodium[1].name).toBe('James');
+    expect(weeklyPodium[2].name).toBe('Jhonny');
+
+    // Monthly
+    const monthlyPodium = calculateMonthlyPodium(players, mockScores, selectedDate);
+    expect(monthlyPodium[0].name).toBe('Marcelo');
+    expect(monthlyPodium[0].wins).toBe(1);
+    expect(monthlyPodium[1].name).toBe('James');
+    expect(monthlyPodium[2].name).toBe('Jhonny');
+  });
+
+  test('Scenario b: All three tied', () => {
+    const mockScores = {
+      '2025-11-01': {
+        date: '2025-11-01',
+        dayOfWeek: 6,
+        results: [
+          { name: 'Marcelo', totalTime: 20 },
+          { name: 'Jhonny', totalTime: 20 },
+          { name: 'James', totalTime: 20 },
+        ],
+      },
+    };
+
+    // Daily
+    const dailyPodium = calculateDailyPodium(mockScores['2025-11-01']);
+    expect(dailyPodium.map(p => p.name)).toEqual(['James', 'Jhonny', 'Marcelo']);
+
+    // Weekly
+    const weeklyPodium = calculateWeeklyPodium(players, mockScores, selectedDate);
+    expect(weeklyPodium[0].name).toBe('James'); // Winner by alphabetical order
+    expect(weeklyPodium[0].wins).toBe(1);
+    expect(weeklyPodium[1].name).toBe('Jhonny');
+    expect(weeklyPodium[2].name).toBe('Marcelo');
+
+    // Monthly
+    const monthlyPodium = calculateMonthlyPodium(players, mockScores, selectedDate);
+    expect(monthlyPodium[0].name).toBe('James'); // Winner by alphabetical order
+    expect(monthlyPodium[0].wins).toBe(1);
+    expect(monthlyPodium[1].name).toBe('Jhonny');
+    expect(monthlyPodium[2].name).toBe('Marcelo');
+  });
+
+  test('Scenario c: Two tied, one slower', () => {
+    const mockScores = {
+      '2025-11-01': {
+        date: '2025-11-01',
+        dayOfWeek: 6,
+        results: [
+          { name: 'Marcelo', totalTime: 30 },
+          { name: 'Jhonny', totalTime: 20 },
+          { name: 'James', totalTime: 20 },
+        ],
+      },
+    };
+
+    // Daily
+    const dailyPodium = calculateDailyPodium(mockScores['2025-11-01']);
+    expect(dailyPodium.map(p => p.name)).toEqual(['James', 'Jhonny', 'Marcelo']);
+
+    // Weekly
+    const weeklyPodium = calculateWeeklyPodium(players, mockScores, selectedDate);
+    expect(weeklyPodium[0].name).toBe('James'); // Winner by alphabetical order
+    expect(weeklyPodium[0].wins).toBe(1);
+    expect(weeklyPodium[1].name).toBe('Jhonny');
+    expect(weeklyPodium[2].name).toBe('Marcelo');
+
+    // Monthly
+    const monthlyPodium = calculateMonthlyPodium(players, mockScores, selectedDate);
+    expect(monthlyPodium[0].name).toBe('James'); // Winner by alphabetical order
+    expect(monthlyPodium[0].wins).toBe(1);
+    expect(monthlyPodium[1].name).toBe('Jhonny');
+    expect(monthlyPodium[2].name).toBe('Marcelo');
   });
 });
