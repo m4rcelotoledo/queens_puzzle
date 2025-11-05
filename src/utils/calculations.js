@@ -214,7 +214,7 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
           if (a.totalTime > 0 && b.totalTime === 0) return -1;
           if (a.totalTime === 0 && b.totalTime > 0) return 1;
 
-          // 2. Between players with time > 0, order by time (first)
+          // 2. Between players with time > 0, order by time (lowest first)
           if (a.totalTime > 0 && b.totalTime > 0) {
             return a.totalTime - b.totalTime;
           }
