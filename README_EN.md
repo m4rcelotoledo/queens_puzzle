@@ -3,6 +3,7 @@
 > **Falantes de português:** Você pode ler este README em português [aqui](./README.md)
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/89cdb707-cd0c-411d-9701-fa89476e5633/deploy-status)](https://app.netlify.com/projects/queens-puzzle/deploys)
+[![codecov](https://codecov.io/gh/m4rcelotoledo/queens_puzzle/graph/badge.svg?token=1QZ5A7t0jA)](https://codecov.io/gh/m4rcelotoledo/queens_puzzle)
 
 An intelligent ranking system for the Queens Puzzle game with smart sorting logic based on victory points, number of games played, and total time.
 
