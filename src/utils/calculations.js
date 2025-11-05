@@ -60,18 +60,18 @@ export const calculateDailyPodium = (dayScore) => {
     if (a.totalTime > 0 && b.totalTime === 0) return -1;
     if (a.totalTime === 0 && b.totalTime > 0) return 1;
 
-    // 2. Between players with time > 0, order by time (first)
+    // 2. Between players with time > 0, order by time (lowest first);
+    //    if times are equal, break ties alphabetically by name
     if (a.totalTime > 0 && b.totalTime > 0) {
-      return a.totalTime - b.totalTime;
+      const timeDiff = a.totalTime - b.totalTime;
+      if (timeDiff !== 0) return timeDiff;
+      return a.name.localeCompare(b.name);
     }
 
     // 3. Between players with time = 0, order alphabetically
     if (a.totalTime === 0 && b.totalTime === 0) {
       return a.name.localeCompare(b.name);
     }
-
-    // 4. Fallback: order alphabetically for any other case
-    return a.name.localeCompare(b.name);
   });
 };
 
@@ -121,18 +121,18 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
         if (a.totalTime > 0 && b.totalTime === 0) return -1;
         if (a.totalTime === 0 && b.totalTime > 0) return 1;
 
-        // 2. Between players with time > 0, order by time (first)
+        // 2. Between players with time > 0, order by time (lowest first);
+        //    if times are equal, break ties alphabetically by name
         if (a.totalTime > 0 && b.totalTime > 0) {
-          return a.totalTime - b.totalTime;
+          const timeDiff = a.totalTime - b.totalTime;
+          if (timeDiff !== 0) return timeDiff;
+          return a.name.localeCompare(b.name);
         }
 
         // 3. Between players with time = 0, order alphabetically
         if (a.totalTime === 0 && b.totalTime === 0) {
           return a.name.localeCompare(b.name);
         }
-
-        // 4. Fallback: order alphabetically for any other case
-        return a.name.localeCompare(b.name);
       });
       const winner = sortedDay[0];
 
@@ -214,18 +214,18 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
           if (a.totalTime > 0 && b.totalTime === 0) return -1;
           if (a.totalTime === 0 && b.totalTime > 0) return 1;
 
-          // 2. Between players with time > 0, order by time (lowest first)
+          // 2. Between players with time > 0, order by time (lowest first);
+          //    if times are equal, break ties alphabetically by name
           if (a.totalTime > 0 && b.totalTime > 0) {
-            return a.totalTime - b.totalTime;
+            const timeDiff = a.totalTime - b.totalTime;
+            if (timeDiff !== 0) return timeDiff;
+            return a.name.localeCompare(b.name);
           }
 
           // 3. Between players with time = 0, order alphabetically
           if (a.totalTime === 0 && b.totalTime === 0) {
             return a.name.localeCompare(b.name);
           }
-
-          // 4. Fallback: order alphabetically for any other case
-          return a.name.localeCompare(b.name);
         });
         const winner = sortedDay[0];
         if (winner && winner.totalTime > 0) {
