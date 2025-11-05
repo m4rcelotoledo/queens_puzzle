@@ -4,44 +4,44 @@ import '@testing-library/jest-dom';
 import LoadingScreen from '../../../src/components/LoadingScreen';
 
 describe('LoadingScreen', () => {
-  it('renderiza corretamente com mensagem padrão', () => {
+  it('renders correctly with default message', () => {
     render(<LoadingScreen />);
 
     expect(screen.getByText('...')).toBeInTheDocument();
   });
 
-  it('renderiza com mensagem customizada', () => {
+  it('renders with custom message', () => {
     render(<LoadingScreen message="Verificando autenticação" />);
 
     expect(screen.getByText('Verificando autenticação...')).toBeInTheDocument();
   });
 
-  it('tem acessibilidade correta', () => {
+  it('has correct accessibility', () => {
     render(<LoadingScreen message="Teste de carregamento" />);
 
     expect(screen.getByText('Teste de carregamento...')).toBeInTheDocument();
   });
 
-  it('renderiza mensagem de carregamento', () => {
+  it('renders loading message', () => {
     render(<LoadingScreen message="Carregando" />);
 
     expect(screen.getByText('Carregando...')).toBeInTheDocument();
   });
 
-  it('aplica classes CSS corretas', () => {
+  it('applies correct CSS classes', () => {
     render(<LoadingScreen />);
 
     const container = screen.getByText('...').closest('.min-h-screen');
     expect(container).toHaveClass('min-h-screen', 'bg-gray-100', 'flex', 'items-center', 'justify-center');
   });
 
-  it('renderiza mensagem vazia graciosamente', () => {
+  it('gracefully renders empty message', () => {
     render(<LoadingScreen message="" />);
 
     expect(screen.getByText('...')).toBeInTheDocument();
   });
 
-  it('renderiza mensagem muito longa corretamente', () => {
+  it('correctly renders very long message', () => {
     const longMessage = 'Esta é uma mensagem de carregamento muito longa que pode ocupar várias linhas e deve ser exibida corretamente na tela de carregamento sem quebrar o layout da interface do usuário.';
 
     render(<LoadingScreen message={longMessage} />);
@@ -49,27 +49,27 @@ describe('LoadingScreen', () => {
     expect(screen.getByText(longMessage + '...')).toBeInTheDocument();
   });
 
-  it('tem texto de carregamento', () => {
+  it('has loading text', () => {
     render(<LoadingScreen message="Carregando" />);
 
     expect(screen.getByText('Carregando...')).toBeInTheDocument();
   });
 
-  it('tem posicionamento centralizado', () => {
+  it('has centered positioning', () => {
     render(<LoadingScreen />);
 
     const container = screen.getByText('...').closest('.min-h-screen');
     expect(container).toHaveClass('flex', 'items-center', 'justify-center');
   });
 
-  it('tem fundo cinza claro', () => {
+  it('has light gray background', () => {
     render(<LoadingScreen />);
 
     const container = screen.getByText('...').closest('.min-h-screen');
     expect(container).toHaveClass('bg-gray-100');
   });
 
-  it('tem altura mínima da tela', () => {
+  it('has minimum screen height', () => {
     render(<LoadingScreen />);
 
     const container = screen.getByText('...').closest('.min-h-screen');

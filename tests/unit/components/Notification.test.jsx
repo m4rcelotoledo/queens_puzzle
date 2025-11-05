@@ -18,7 +18,7 @@ describe('Notification', () => {
     jest.clearAllMocks();
   });
 
-  it('renderiza notificação de sucesso corretamente', () => {
+  it('renders success notification correctly', () => {
     render(
       <Notification
         message="Operação realizada com sucesso!"
@@ -31,7 +31,7 @@ describe('Notification', () => {
     expect(screen.getByText('Operação realizada com sucesso!').closest('.bg-green-500')).toBeInTheDocument();
   });
 
-  it('renderiza notificação de erro corretamente', () => {
+  it('renders error notification correctly', () => {
     render(
       <Notification
         message="Erro ao processar operação"
@@ -44,7 +44,7 @@ describe('Notification', () => {
     expect(screen.getByText('Erro ao processar operação').closest('.bg-red-500')).toBeInTheDocument();
   });
 
-  it('renderiza notificação de aviso corretamente', () => {
+  it('renders warning notification correctly', () => {
     render(
       <Notification
         message="Atenção: dados incompletos"
@@ -57,7 +57,7 @@ describe('Notification', () => {
     expect(screen.getByText('Atenção: dados incompletos').closest('.bg-yellow-500')).toBeInTheDocument();
   });
 
-  it('chama onDismiss automaticamente após 4 segundos', () => {
+  it('calls onDismiss automatically after 4 seconds', () => {
     jest.useFakeTimers();
 
     render(
@@ -77,7 +77,7 @@ describe('Notification', () => {
     jest.useRealTimers();
   });
 
-  it('tem acessibilidade correta', () => {
+  it('has correct accessibility', () => {
     render(
       <Notification
         message="Notificação de teste"
@@ -89,7 +89,7 @@ describe('Notification', () => {
     expect(screen.getByText('Notificação de teste')).toBeInTheDocument();
   });
 
-  it('aplica classes CSS corretas para cada tipo', () => {
+  it('applies correct CSS classes for each type', () => {
     const { rerender } = render(
       <Notification
         message="Teste"
@@ -121,7 +121,7 @@ describe('Notification', () => {
     expect(screen.getByText('Teste').closest('.bg-yellow-500')).toBeInTheDocument();
   });
 
-  it('renderiza mensagem corretamente', () => {
+  it('renders message correctly', () => {
     render(
       <Notification
         message="Teste"
@@ -133,7 +133,7 @@ describe('Notification', () => {
     expect(screen.getByText('Teste')).toBeInTheDocument();
   });
 
-  it('manipula tipo inválido graciosamente', () => {
+  it('handles invalid type gracefully', () => {
     render(
       <Notification
         message="Teste"
@@ -146,7 +146,7 @@ describe('Notification', () => {
     expect(screen.getByText('Teste').closest('.bg-gray-700')).toBeInTheDocument();
   });
 
-  it('renderiza mensagem longa corretamente', () => {
+  it('correctly renders long message', () => {
     const longMessage = 'Esta é uma mensagem muito longa que pode ocupar várias linhas e deve ser exibida corretamente na notificação sem quebrar o layout da interface do usuário.';
 
     render(
@@ -160,7 +160,7 @@ describe('Notification', () => {
     expect(screen.getByText(longMessage)).toBeInTheDocument();
   });
 
-  it('tem posicionamento correto na tela', () => {
+  it('has correct positioning on screen', () => {
     render(
       <Notification
         message="Teste"

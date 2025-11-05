@@ -39,7 +39,7 @@ describe('PlayerStatsPage', () => {
     jest.clearAllMocks();
   });
 
-  test('should render player stats correctly', () => {
+  test('renders player stats correctly', () => {
     render(<PlayerStatsPage {...defaultProps} />);
 
     expect(screen.getByText('João Silva - Estatísticas')).toBeInTheDocument();
