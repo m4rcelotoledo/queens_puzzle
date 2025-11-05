@@ -209,7 +209,24 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
     const scoreDate = new Date(score.date + 'T12:00:00Z');
     if (scoreDate.getFullYear() === year && scoreDate.getMonth() === month) {
       if (score.results && !score.results.every(r => r.totalTime === 0)) {
-        const sortedDay = [...score.results].sort((a, b) => a.totalTime - b.totalTime);
+        const sortedDay = [...score.results].sort((a, b) => {
+          // 1. Players with time > 0 are in front of those with time = 0
+          if (a.totalTime > 0 && b.totalTime === 0) return -1;
+          if (a.totalTime === 0 && b.totalTime > 0) return 1;
+
+          // 2. Between players with time > 0, order by time (first)
+          if (a.totalTime > 0 && b.totalTime > 0) {
+            return a.totalTime - b.totalTime;
+          }
+
+          // 3. Between players with time = 0, order alphabetically
+          if (a.totalTime === 0 && b.totalTime === 0) {
+            return a.name.localeCompare(b.name);
+          }
+
+          // 4. Fallback: order alphabetically for any other case
+          return a.name.localeCompare(b.name);
+        });
         const winner = sortedDay[0];
         if (winner && winner.totalTime > 0) {
           const weight = score.dayOfWeek === SUNDAY_DAY_OF_WEEK ? SUNDAY_WEIGHT : WEEKDAY_WEIGHT;
