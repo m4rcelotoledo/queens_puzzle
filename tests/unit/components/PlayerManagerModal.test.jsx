@@ -350,6 +350,7 @@ describe('PlayerManagerModal', () => {
   });
 
   it('allows adding a player with Enter', async () => {
+    const user = userEvent.setup();
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -361,7 +362,8 @@ describe('PlayerManagerModal', () => {
     const addInput = screen.getByPlaceholderText('New player name');
 
     fireEvent.change(addInput, { target: { value: 'João' } });
-    fireEvent.keyPress(addInput, { key: 'Enter', code: 'Enter', charCode: 13, keyCode: 13, which: 13 });
+    addInput.focus();
+    await user.keyboard('{Enter}');
 
     await waitFor(() => {
       // Should have been added to the players list (not just the addition input)
@@ -390,6 +392,7 @@ describe('PlayerManagerModal', () => {
   });
 
   it('adds player with Enter and clears the addition input (covers onKeyPress)', async () => {
+    const user = userEvent.setup();
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -400,8 +403,7 @@ describe('PlayerManagerModal', () => {
 
     const addInput = screen.getByPlaceholderText('New player name');
 
-    fireEvent.change(addInput, { target: { value: 'Paulo' } });
-    fireEvent.keyPress(addInput, { key: 'Enter', code: 'Enter', charCode: 13, keyCode: 13, which: 13 });
+    await user.type(addInput, 'Paulo{enter}');
 
     await waitFor(() => {
       // Players (3) -> Players (4)
