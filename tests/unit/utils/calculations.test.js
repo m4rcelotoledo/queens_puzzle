@@ -1784,6 +1784,72 @@ describe('calculateMonthlyPodium', () => {
       { name: 'Charlie', wins: 0, totalTime: 100, gamesPlayed: 1 }
     ]);
   });
+
+  test('should handle production error scenario correctly', () => {
+    const players = ['Marcelo', 'James', 'Jhonny'];
+    const selectedDate = new Date('2025-11-05');
+    const mockScores = {
+      '2025-11-01': {
+        date: '2025-11-01',
+        dayOfWeek: 6, // Saturday
+        results: [
+          { name: 'Marcelo', totalTime: 41 },
+          { name: 'James', totalTime: 51 },
+          { name: 'Jhonny', totalTime: 115 },
+        ],
+      },
+      '2025-11-02': {
+        date: '2025-11-02',
+        dayOfWeek: 0, // Sunday
+        results: [
+          { name: 'Marcelo', totalTime: 212 },
+          { name: 'James', totalTime: 243 },
+          { name: 'Jhonny', totalTime: 86 },
+        ],
+      },
+      '2025-11-03': {
+        date: '2025-11-03',
+        dayOfWeek: 1, // Monday
+        results: [
+          { name: 'Marcelo', totalTime: 14 },
+          { name: 'James', totalTime: 20 },
+          { name: 'Jhonny', totalTime: 24 },
+        ],
+      },
+      '2025-11-04': {
+        date: '2025-11-04',
+        dayOfWeek: 2, // Tuesday
+        results: [
+          { name: 'Marcelo', totalTime: 14 },
+          { name: 'James', totalTime: 55 },
+          { name: 'Jhonny', totalTime: 0 }, // Didn't play
+        ],
+      },
+      '2025-11-05': {
+        date: '2025-11-05',
+        dayOfWeek: 3, // Wednesday
+        results: [
+          { name: 'Marcelo', totalTime: 15 },
+          { name: 'James', totalTime: 27 },
+          { name: 'Jhonny', totalTime: 36 },
+        ],
+      },
+    };
+
+    const podium = calculateMonthlyPodium(players, mockScores, selectedDate);
+
+    // 1. Marcelo should be first with 4 points.
+    expect(podium[0].name).toBe('Marcelo');
+    expect(podium[0].wins).toBe(4);
+
+    // 2. Jhonny should be second with 3 points.
+    expect(podium[1].name).toBe('Jhonny');
+    expect(podium[1].wins).toBe(3);
+
+    // 3. James should be third with 0 points.
+    expect(podium[2].name).toBe('James');
+    expect(podium[2].wins).toBe(0);
+  });
 });
 
 describe('validateTimes', () => {
