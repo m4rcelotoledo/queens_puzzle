@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import PlayerManagerModal from '../../../src/components/PlayerManagerModal';
 
@@ -20,7 +21,7 @@ describe('PlayerManagerModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renderiza corretamente com jogadores existentes', () => {
+  it('renders correctly with existing players', () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -39,7 +40,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.getByDisplayValue('Maria')).toBeInTheDocument();
   });
 
-  it('renderiza corretamente sem jogadores', () => {
+  it('renders correctly without players', () => {
     render(
       <PlayerManagerModal
         players={[]}
@@ -52,7 +53,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.getByText('No players added')).toBeInTheDocument();
   });
 
-  it('permite adicionar novo jogador', async () => {
+  it('allows adding a new player', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -72,7 +73,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('permite remover jogador sem registros imediatamente', async () => {
+  it('allows removing a player without records immediately', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -90,7 +91,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('mostra confirmação ao tentar remover jogador com registros', async () => {
+  it('shows confirmation when trying to remove a player with records', async () => {
     const scoresWithRecords = {
       '2024-01-01': {
         results: [
@@ -120,7 +121,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('permite cancelar a remoção de jogador com registros', async () => {
+  it('allows canceling the removal of a player with records', async () => {
     const scoresWithRecords = {
       '2024-01-01': {
         results: [
@@ -157,7 +158,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('confirma a remoção de jogador com registros', async () => {
+  it('confirms the removal of a player with records', async () => {
     const scoresWithRecords = {
       '2024-01-01': {
         results: [
@@ -193,7 +194,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('permite editar nome do jogador', async () => {
+  it('allows editing the player name', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -210,7 +211,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('valida nomes duplicados', async () => {
+  it('validates duplicate names', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -230,7 +231,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('valida nome vazio', async () => {
+  it('validates empty name', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -250,7 +251,7 @@ describe('PlayerManagerModal', () => {
     expect(addButton).not.toBeDisabled();
   });
 
-  it('valida nome muito curto', async () => {
+  it('validates too short name', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -270,7 +271,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('valida nome muito longo', async () => {
+  it('validates too long name', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -290,7 +291,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('chama onClose quando cancelar é clicado', () => {
+  it('calls onClose when cancel is clicked', () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -305,7 +306,7 @@ describe('PlayerManagerModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
-  it('chama onSetupComplete quando salvar é clicado', async () => {
+  it('calls onSetupComplete when save is clicked', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -322,7 +323,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('desabilita botão salvar quando não há jogadores', () => {
+  it('disables save button when there are no players', () => {
     render(
       <PlayerManagerModal
         players={[]}
@@ -335,7 +336,7 @@ describe('PlayerManagerModal', () => {
     expect(saveButton).toBeDisabled();
   });
 
-  it('desabilita botão adicionar quando input está vazio', () => {
+  it('disables add button when input is empty', () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -348,7 +349,7 @@ describe('PlayerManagerModal', () => {
     expect(addButton).toBeDisabled();
   });
 
-  it('permite adicionar jogador com Enter', async () => {
+  it('allows adding a player with Enter', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -360,14 +361,77 @@ describe('PlayerManagerModal', () => {
     const addInput = screen.getByPlaceholderText('New player name');
 
     fireEvent.change(addInput, { target: { value: 'João' } });
-    fireEvent.keyPress(addInput, { key: 'Enter', code: 'Enter' });
+    fireEvent.keyPress(addInput, { key: 'Enter', code: 'Enter', charCode: 13, keyCode: 13, which: 13 });
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('João')).toBeInTheDocument();
+      // Should have been added to the players list (not just the addition input)
+      const playerInputs = screen.getAllByPlaceholderText('Player name');
+      expect(playerInputs.some(i => i.value === 'João')).toBe(true);
     });
   });
 
-  it('limpa erros ao remover jogador', async () => {
+  it('shows "Name cannot be empty" error when clearing existing name (real-time validation)', async () => {
+    render(
+      <PlayerManagerModal
+        players={defaultPlayers}
+        onSetupComplete={mockOnSetupComplete}
+        onClose={mockOnClose}
+      />
+    );
+
+    const playerInputs = screen.getAllByPlaceholderText('Player name');
+    // Clear the name of the first player
+    fireEvent.change(playerInputs[0], { target: { value: '   ' } });
+
+    // Should show empty name error (covers line 24 and setErrors from line 126)
+    await waitFor(() => {
+      expect(screen.getByText('Name cannot be empty')).toBeInTheDocument();
+    });
+  });
+
+  it('adds player with Enter and clears the addition input (covers onKeyPress)', async () => {
+    render(
+      <PlayerManagerModal
+        players={defaultPlayers}
+        onSetupComplete={mockOnSetupComplete}
+        onClose={mockOnClose}
+      />
+    );
+
+    const addInput = screen.getByPlaceholderText('New player name');
+
+    fireEvent.change(addInput, { target: { value: 'Paulo' } });
+    fireEvent.keyPress(addInput, { key: 'Enter', code: 'Enter', charCode: 13, keyCode: 13, which: 13 });
+
+    await waitFor(() => {
+      // Players (3) -> Players (4)
+      expect(screen.getByText('Players (4)')).toBeInTheDocument();
+      // Addition input should be cleared
+      expect(screen.getByPlaceholderText('New player name')).toHaveValue('');
+    });
+  });
+
+  it('covers onKeyPress using userEvent.type with {enter}', async () => {
+    const user = userEvent.setup();
+    render(
+      <PlayerManagerModal
+        players={defaultPlayers}
+        onSetupComplete={mockOnSetupComplete}
+        onClose={mockOnClose}
+      />
+    );
+
+    const addInput = screen.getByPlaceholderText('New player name');
+
+    await user.type(addInput, 'Rafa{enter}');
+
+    await waitFor(() => {
+      expect(screen.getByText('Players (4)')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('New player name')).toHaveValue('');
+    });
+  });
+
+  it('clears errors when removing player', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -396,7 +460,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('valida jogadores com registros de tempo zero', () => {
+  it('validates players with zero time records', () => {
     const scoresWithZeroTime = {
       '2024-01-01': {
         results: [
@@ -424,7 +488,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.queryByText('Confirm Removal')).not.toBeInTheDocument();
   });
 
-  it('manipula scores vazio corretamente', () => {
+  it('handles empty scores correctly', () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -442,7 +506,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.queryByText('Confirm Removal')).not.toBeInTheDocument();
   });
 
-  it('manipula scores null corretamente', () => {
+  it('handles null scores correctly', () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -460,7 +524,32 @@ describe('PlayerManagerModal', () => {
     expect(screen.queryByText('Confirm Removal')).not.toBeInTheDocument();
   });
 
-  it('testa erro ao salvar jogadores', async () => {
+  it('handles score with document without results', () => {
+    const scoresWithoutResults = {
+      '2024-01-01': {
+        date: '2024-01-01',
+        dayOfWeek: 1,
+        // without "results"
+      },
+    };
+
+    render(
+      <PlayerManagerModal
+        players={defaultPlayers}
+        scores={scoresWithoutResults}
+        onSetupComplete={mockOnSetupComplete}
+        onClose={mockOnClose}
+      />
+    );
+
+    const removeButtons = screen.getAllByTitle('Remove player');
+    fireEvent.click(removeButtons[0]);
+
+    // Should not open confirmation (line 68 is covered)
+    expect(screen.queryByText('Confirm Removal')).not.toBeInTheDocument();
+  });
+
+  it('tests error when saving players', async () => {
     // Mock console.error to prevent it from appearing in test output
     const originalConsoleError = console.error;
     console.error = jest.fn();
@@ -489,7 +578,7 @@ describe('PlayerManagerModal', () => {
     console.error = originalConsoleError;
   });
 
-  it('testa validação com erros', async () => {
+  it('tests validation with errors', async () => {
     render(
       <PlayerManagerModal
         players={defaultPlayers}
@@ -498,22 +587,22 @@ describe('PlayerManagerModal', () => {
       />
     );
 
-    // Adiciona um jogador com nome inválido
+    // Adds a player with an invalid name
     const addInput = screen.getByPlaceholderText('New player name');
     const addButton = screen.getByText('Add');
 
     fireEvent.change(addInput, { target: { value: 'A' } });
     fireEvent.click(addButton);
 
-    // Agora tenta salvar com erro de validação
+    // Now try to save with validation error
     const saveButton = screen.getByText('Save Changes');
     fireEvent.click(saveButton);
 
-    // O botão deve estar desabilitado devido ao erro
+    // The button should be disabled due to the error
     expect(saveButton).toBeDisabled();
   });
 
-  it('testa estado de submissão', async () => {
+  it('tests submission state', async () => {
     const mockOnSetupCompleteAsync = jest.fn().mockImplementation(() =>
       new Promise(resolve => setTimeout(resolve, 100))
     );
@@ -529,13 +618,13 @@ describe('PlayerManagerModal', () => {
     const saveButton = screen.getByText('Save Changes');
     fireEvent.click(saveButton);
 
-    // Deve mostrar "Saving..." durante a submissão
+    // Should show "Saving..." during submission
     await waitFor(() => {
       expect(screen.getByText('Saving...')).toBeInTheDocument();
     });
   });
 
-  it('testa erros gerais', async () => {
+  it('tests general errors', async () => {
     render(
       <PlayerManagerModal
         players={[]}
@@ -555,7 +644,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('testa validação de nomes duplicados em tempo real', async () => {
+  it('tests real-time duplicate name validation', async () => {
     render(
       <PlayerManagerModal
         players={['Maria', 'Maria']}
@@ -578,7 +667,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('testa limpeza de erro ao digitar no input de novo jogador', async () => {
+  it('tests error clearing when typing in the new player input', async () => {
     render(
       <PlayerManagerModal
         players={['João']}
@@ -608,7 +697,7 @@ describe('PlayerManagerModal', () => {
     });
   });
 
-  it('testa validação de nome muito longo', () => {
+  it('tests validation of too long name', () => {
     render(
       <PlayerManagerModal
         players={['João']}
@@ -628,7 +717,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.getByText('Name must have at most 20 characters')).toBeInTheDocument();
   });
 
-  it('testa validação de nome vazio', async () => {
+  it('tests validation of empty name', async () => {
     render(
       <PlayerManagerModal
         players={['João']}
@@ -656,7 +745,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.queryByText('Name cannot be empty')).not.toBeInTheDocument();
   });
 
-  it('testa validação de nome com espaços em branco', () => {
+  it('tests validation of name with spaces', () => {
     render(
       <PlayerManagerModal
         players={['João']}
@@ -676,7 +765,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.getByDisplayValue('Pedro')).toBeInTheDocument();
   });
 
-  it('testa validação de nome com caracteres especiais', () => {
+  it('tests validation of name with special characters', () => {
     render(
       <PlayerManagerModal
         players={['João']}
@@ -696,7 +785,7 @@ describe('PlayerManagerModal', () => {
     expect(screen.getByDisplayValue('João-Maria')).toBeInTheDocument();
   });
 
-  it('testa validação de nome com números', () => {
+  it('tests validation of name with numbers', () => {
     render(
       <PlayerManagerModal
         players={['João']}
