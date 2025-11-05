@@ -10,7 +10,7 @@ describe('LoginScreen', () => {
     jest.clearAllMocks();
   });
 
-  it('renderiza corretamente', () => {
+  it('renders correctly', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     expect(screen.getByText('🏆 Placar do Puzzle das Rainhas 👑')).toBeInTheDocument();
@@ -18,7 +18,7 @@ describe('LoginScreen', () => {
     expect(screen.getByRole('button', { name: /entrar com google/i })).toBeInTheDocument();
   });
 
-  it('chama onLogin quando o botão é clicado', () => {
+  it('calls onLogin when the button is clicked', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     const loginButton = screen.getByRole('button', { name: /entrar com google/i });
@@ -27,7 +27,7 @@ describe('LoginScreen', () => {
     expect(mockOnLogin).toHaveBeenCalledTimes(1);
   });
 
-  it('exibe erro quando fornecido', () => {
+  it('displays error when provided', () => {
     const errorMessage = 'Erro de autenticação';
     render(<LoginScreen onLogin={mockOnLogin} error={errorMessage} />);
 
@@ -35,27 +35,27 @@ describe('LoginScreen', () => {
     expect(screen.getByText(errorMessage)).toHaveClass('text-red-500', 'mt-4');
   });
 
-  it('não exibe erro quando não fornecido', () => {
+  it('does not display error when not provided', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('tem acessibilidade correta', () => {
+  it('has correct accessibility', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     expect(screen.getByRole('button')).toBeInTheDocument();
     expect(screen.getByText('Faça login para continuar')).toBeInTheDocument();
   });
 
-  it('aplica classes CSS corretas', () => {
+  it('applies correct CSS classes', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     const title = screen.getByText('🏆 Placar do Puzzle das Rainhas 👑');
     expect(title).toHaveClass('text-4xl', 'sm:text-5xl', 'font-extrabold', 'text-gray-800');
   });
 
-  it('renderiza ícone do Google', () => {
+  it('renders Google icon', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     const googleIcon = screen.getByRole('button').querySelector('img');
@@ -63,26 +63,26 @@ describe('LoginScreen', () => {
     expect(googleIcon).toHaveAttribute('alt', 'Google icon');
   });
 
-  it('tem botão com estilo correto', () => {
+  it('has button with correct style', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     const loginButton = screen.getByRole('button');
     expect(loginButton).toHaveClass('bg-white', 'px-6', 'py-3', 'rounded-lg', 'shadow-lg');
   });
 
-  it('manipula erro vazio graciosamente', () => {
+  it('handles empty error gracefully', () => {
     render(<LoginScreen onLogin={mockOnLogin} error="" />);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('manipula erro null graciosamente', () => {
+  it('handles null error gracefully', () => {
     render(<LoginScreen onLogin={mockOnLogin} error={null} />);
 
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('renderiza erro longo corretamente', () => {
+  it('correctly renders long error', () => {
     const longError = 'Este é um erro muito longo que pode ocupar várias linhas e deve ser exibido corretamente na tela de login sem quebrar o layout da interface do usuário.';
 
     render(<LoginScreen onLogin={mockOnLogin} error={longError} />);
@@ -90,14 +90,14 @@ describe('LoginScreen', () => {
     expect(screen.getByText(longError)).toBeInTheDocument();
   });
 
-  it('tem layout responsivo', () => {
+  it('has responsive layout', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     const container = screen.getByText('🏆 Placar do Puzzle das Rainhas 👑').closest('.min-h-screen');
     expect(container).toHaveClass('p-4');
   });
 
-  it('tem título com emoji', () => {
+  it('has title with emoji', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     const title = screen.getByText('🏆 Placar do Puzzle das Rainhas 👑');
@@ -105,7 +105,7 @@ describe('LoginScreen', () => {
     expect(title).toHaveClass('text-4xl', 'sm:text-5xl', 'font-extrabold');
   });
 
-  it('tem subtítulo descritivo', () => {
+  it('has descriptive subtitle', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
     const subtitle = screen.getByText('Faça login para continuar');
