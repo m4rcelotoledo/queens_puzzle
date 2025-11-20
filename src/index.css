@@ -1,1 +1,23 @@
 @import "tailwindcss";
+
+/* Dark mode configuration for Tailwind v4 */
+@variant dark (&:is(.dark *));
+
+/* Adjustments for Tailwind v4 Preflight changes */
+@layer base {
+  /* Normalize border widths to match v3 behavior */
+  *,
+  ::before,
+  ::after {
+    border-width: 0;
+    border-style: solid;
+    border-color: theme(colors.gray.200 / 1);
+  }
+
+  /* Dark mode border color */
+  .dark *,
+  .dark ::before,
+  .dark ::after {
+    border-color: theme(colors.gray.700 / 1);
+  }
+}
