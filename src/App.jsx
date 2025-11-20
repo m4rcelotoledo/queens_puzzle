@@ -149,7 +149,14 @@ export default function App() {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Error logging in with Google:", error);
-      setAuthError("Ocorreu um erro durante o login.");
+
+      // Check if it's an unauthorized domain error
+      if (error.code === 'auth/unauthorized-domain' || error.message.includes('unauthorized-domain')) {
+        const currentDomain = window.location.hostname;
+        setAuthError(`This domain (${currentDomain}) is not authorized. Configure in Firebase Console: Authentication → Settings → Authorized domains`);
+      } else {
+        setAuthError("An error occurred during login. Please try again.");
+      }
     }
   };
 
