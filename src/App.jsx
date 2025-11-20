@@ -374,7 +374,7 @@ export default function App() {
                           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Pódio do Dia: {selectedDate.toLocaleDateString('pt-BR')}</h2>
                           {dailyPodium ? (
                             <ul>{dailyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
-                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 flex-grow hover:underline">{player.name}</button>
+                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 grow hover:underline">{player.name}</button>
                               <span className="text-gray-600 dark:text-gray-400 font-mono">{player.totalTime} seg</span></li>))}</ul>
                           ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado registrado para este dia.</p>)}
                         </div>
@@ -387,7 +387,7 @@ export default function App() {
                           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
                           {weeklyPodium && weeklyPodium.some(p => p.wins > 0) ? (
                             <ul>{weeklyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
-                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 flex-grow hover:underline">{player.name}</button>
+                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 grow hover:underline">{player.name}</button>
                               <span className="text-gray-600 dark:text-gray-400 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
                           ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado na semana ainda.</p>)}
                         </div>
@@ -400,7 +400,7 @@ export default function App() {
                           <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Domingo vale 3 pontos, outros dias valem 1.</p>
                           {monthlyPodium && monthlyPodium.some(p => p.wins > 0) ? (
                             <ul>{monthlyPodium.map((player, index) => (<li key={player.name} className="flex items-center p-3 mb-2 bg-gray-50 dark:bg-gray-700 rounded-lg border dark:border-gray-600"><PodiumIcon rank={index + 1} />
-                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 flex-grow hover:underline">{player.name}</button>
+                              <button onClick={() => handlePlayerClick(player.name)} className="font-semibold text-lg text-left text-gray-700 dark:text-gray-200 grow hover:underline">{player.name}</button>
                               <span className="text-gray-600 dark:text-gray-400 font-mono">{player.wins} {player.wins === 1 ? 'ponto' : 'pontos'}</span></li>))}</ul>
                           ) : (<p className="text-gray-500 dark:text-gray-400 text-center py-8">Nenhum resultado no mês ainda.</p>)}
                         </div>

@@ -34,10 +34,10 @@ const TimeInputForm = ({ players, isSunday, times, handleTimeChange, handleSaveS
         </div>
       ))}
       <div className="flex space-x-2 mt-4">
-        <button type="submit" className="flex-grow bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105">
+        <button type="submit" className="grow bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-transform transform hover:scale-105">
           Salvar
         </button>
-        <button type="button" onClick={() => setTimes({})} className="flex-shrink-0 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">
+        <button type="button" onClick={() => setTimes({})} className="shrink-0 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 font-bold py-3 px-4 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500">
           Limpar
         </button>
       </div>
