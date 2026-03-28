@@ -34,7 +34,10 @@ describe('LoadingScreen', () => {
     const inner = screen.getByText('...');
     const outer = inner.closest('.min-h-screen');
     expect(outer).toHaveClass('min-h-screen', 'bg-gray-100', 'dark:bg-gray-900', 'flex', 'flex-col');
-    expect(inner).toHaveClass('flex-1', 'flex', 'items-center', 'justify-center');
+    
+    const centerContainer = inner.parentElement;
+    expect(centerContainer).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
+    expect(inner).toHaveClass('animate-pulse');
   });
 
   it('gracefully renders empty message', () => {
@@ -60,7 +63,8 @@ describe('LoadingScreen', () => {
   it('has centered positioning', () => {
     render(<LoadingScreen />);
 
-    expect(screen.getByText('...')).toHaveClass('flex', 'items-center', 'justify-center');
+    const centerContainer = screen.getByText('...').parentElement;
+    expect(centerContainer).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
   });
 
   it('has light gray background', () => {
