@@ -1,6 +1,6 @@
 // Notification Component for visual feedback
 import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 const Notification = ({ message, type, onDismiss }) => {
   useEffect(() => {
@@ -15,7 +15,7 @@ const Notification = ({ message, type, onDismiss }) => {
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: -50, opacity: 0 }}
@@ -23,7 +23,7 @@ const Notification = ({ message, type, onDismiss }) => {
       className={`fixed top-5 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg shadow-xl text-white font-semibold z-50 ${typeClasses[type] || 'bg-gray-700'}`}
     >
       {message}
-    </motion.div>
+    </m.div>
   );
 };
 
