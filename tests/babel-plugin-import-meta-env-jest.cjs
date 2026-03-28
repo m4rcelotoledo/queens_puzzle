@@ -1,7 +1,7 @@
 /**
  * Jest runs source through Babel; `import.meta` is not valid in the Jest CJS pipeline.
- * Replaces `import.meta.env.VITE_APP_VERSION` with `global.import.meta.env.VITE_APP_VERSION`
- * (see setupTests.js). Vite build does not use this file.
+ * Replaces `import.meta.env.<KEY>` with `global.import.meta.env.<KEY>` (see setupTests.js).
+ * Vite build does not use this file.
  */
 module.exports = function babelPluginImportMetaEnvJest({ types: t }) {
   function isImportMeta(node) {
@@ -12,7 +12,7 @@ module.exports = function babelPluginImportMetaEnvJest({ types: t }) {
     );
   }
 
-  function globalImportMetaEnvViteVersion() {
+  function globalImportMetaEnvMember(key) {
     return t.memberExpression(
       t.memberExpression(
         t.memberExpression(
@@ -21,7 +21,7 @@ module.exports = function babelPluginImportMetaEnvJest({ types: t }) {
         ),
         t.identifier('env')
       ),
-      t.identifier('VITE_APP_VERSION')
+      t.identifier(key)
     );
   }
 
@@ -30,11 +30,14 @@ module.exports = function babelPluginImportMetaEnvJest({ types: t }) {
     visitor: {
       MemberExpression(path) {
         const { node } = path;
-        if (!t.isIdentifier(node.property, { name: 'VITE_APP_VERSION' })) return;
+        // import.meta.env.ANY_KEY
+        if (!t.isIdentifier(node.property)) return;
         if (!t.isMemberExpression(node.object)) return;
-        if (!t.isIdentifier(node.object.property, { name: 'env' })) return;
-        if (!isImportMeta(node.object.object)) return;
-        path.replaceWith(globalImportMetaEnvViteVersion());
+        const envAccess = node.object;
+        if (!t.isIdentifier(envAccess.property, { name: 'env' })) return;
+        if (!isImportMeta(envAccess.object)) return;
+
+        path.replaceWith(globalImportMetaEnvMember(node.property.name));
       },
     },
   };
