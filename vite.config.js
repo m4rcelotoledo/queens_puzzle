@@ -11,7 +11,7 @@ const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8')
 // https://vitejs.dev/config/
 export default defineConfig({
   define: {
-    'process.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
   },
   plugins: [
     react(),
@@ -45,7 +45,7 @@ export default defineConfig({
             handler: 'NetworkOnly',
           },
           {
-            urlPattern: /^https:\/\/.*\.firebaseio\.com\/.*/i,
+            urlPattern: /^https:\/\/[-a-zA-Z0-9.]*\.firebaseio\.com\/.*/i,
             handler: 'NetworkOnly',
           },
           {
