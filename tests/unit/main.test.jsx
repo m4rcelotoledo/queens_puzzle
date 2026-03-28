@@ -18,6 +18,11 @@ jest.mock('../../src/App.jsx', () => ({
   },
 }));
 
+jest.mock('framer-motion', () => ({
+  LazyMotion: function MockLazyMotion({ children }) { return children; },
+  domAnimation: {}
+}));
+
 describe('main.jsx', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="root"></div>';
@@ -43,6 +48,7 @@ describe('main.jsx', () => {
 
     const strictEl = mockRender.mock.calls[0][0];
     expect(strictEl.type).toBe(React.StrictMode);
-    expect(strictEl.props.children.type).toBe(AppComponent);
+    expect(strictEl.props.children.type.name).toBe('MockLazyMotion');
+    expect(strictEl.props.children.props.children.type).toBe(AppComponent);
   });
 });
