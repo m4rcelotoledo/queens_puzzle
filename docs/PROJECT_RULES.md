@@ -121,7 +121,7 @@ Critérios, **nesta ordem**:
 
 - Workflow GitHub Actions em `.github/workflows/test.yml` — alinhar comandos com `npm run test:ci` e artefatos esperados (coverage, junit se aplicável).
 - **Tags de release:** `.github/workflows/release-tag.yml` corre em **push** a `master`: cria a anotação `v{version}` a partir de `package.json` se essa tag ainda não existir no remoto. Antes de mergear para `master`, atualizar a versão em `package.json` (e lockfile se aplicável).
-- Frontend tipicamente em **Netlify**; variáveis `VITE_*` para Firebase. A versão mostrada no rodapé vem de `process.env.VITE_APP_VERSION`, definida no build pelo `vite.config.js` a partir de `package.json`.
+- Frontend tipicamente em **Netlify**; variáveis `VITE_*` para Firebase. A versão no rodapé usa **`import.meta.env.VITE_APP_VERSION`**, injetada no build em `vite.config.js` (`define`) a partir de `package.json`. No Jest, `tests/babel-plugin-import-meta-env-jest.cjs` reescreve essa expressão para o mock em `setupTests.js`.
 - **PWA:** `vite-plugin-pwa` com `registerType: 'autoUpdate'` — o browser obtém um novo service worker após deploys; tráfego Firebase/Google APIs usa `NetworkOnly` para não servir dados em cache.
 
 ---
