@@ -31,8 +31,10 @@ describe('LoadingScreen', () => {
   it('applies correct CSS classes', () => {
     render(<LoadingScreen />);
 
-    const container = screen.getByText('...').closest('.min-h-screen');
-    expect(container).toHaveClass('min-h-screen', 'bg-gray-100', 'flex', 'items-center', 'justify-center');
+    const inner = screen.getByText('...');
+    const outer = inner.closest('.min-h-screen');
+    expect(outer).toHaveClass('min-h-screen', 'bg-gray-100', 'dark:bg-gray-900', 'flex', 'flex-col');
+    expect(inner).toHaveClass('flex-1', 'flex', 'items-center', 'justify-center');
   });
 
   it('gracefully renders empty message', () => {
@@ -58,8 +60,7 @@ describe('LoadingScreen', () => {
   it('has centered positioning', () => {
     render(<LoadingScreen />);
 
-    const container = screen.getByText('...').closest('.min-h-screen');
-    expect(container).toHaveClass('flex', 'items-center', 'justify-center');
+    expect(screen.getByText('...')).toHaveClass('flex', 'items-center', 'justify-center');
   });
 
   it('has light gray background', () => {
@@ -74,5 +75,12 @@ describe('LoadingScreen', () => {
 
     const container = screen.getByText('...').closest('.min-h-screen');
     expect(container).toHaveClass('min-h-screen');
+  });
+
+  it('renders optional footer', () => {
+    render(<LoadingScreen message="Carregando" footer={<footer data-testid="footer-slot">Footer</footer>} />);
+
+    expect(screen.getByTestId('footer-slot')).toBeInTheDocument();
+    expect(screen.getByText('Footer')).toBeInTheDocument();
   });
 });
