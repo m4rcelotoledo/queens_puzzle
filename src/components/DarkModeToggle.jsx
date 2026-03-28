@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 
 const DarkModeToggle = ({ isDarkMode, setIsDarkMode }) => {
   const SunIcon = () => (
@@ -11,14 +11,14 @@ const DarkModeToggle = ({ isDarkMode, setIsDarkMode }) => {
   );
 
   return (
-    <motion.button
+    <m.button
       onClick={() => setIsDarkMode(!isDarkMode)}
       className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
     >
       {isDarkMode ? <SunIcon /> : <MoonIcon />}
-    </motion.button>
+    </m.button>
   );
 };
 

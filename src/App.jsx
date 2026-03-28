@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'rea
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, getIdTokenResult } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot, collection, query } from 'firebase/firestore';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m as motion, AnimatePresence } from 'framer-motion';
 
 import DarkModeToggle from './components/DarkModeToggle';
 import LoadingScreen from './components/LoadingScreen';

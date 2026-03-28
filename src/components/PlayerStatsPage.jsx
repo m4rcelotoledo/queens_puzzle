@@ -1,10 +1,10 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // This component displays a statistic card with title, value, and unit.
 const StatCard = ({ title, value, unit }) => (
-  <motion.div
+  <m.div
     className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg text-center"
     whileHover={{ scale: 1.05 }}
   >
@@ -12,7 +12,7 @@ const StatCard = ({ title, value, unit }) => (
     <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
       {value} <span className="text-lg font-normal">{unit}</span>
     </p>
-  </motion.div>
+  </m.div>
 );
 
 // The PlayerStatsPage component displays detailed statistics for a player.
@@ -20,7 +20,7 @@ const PlayerStatsPage = ({ stats, onBack }) => {
   if (!stats) return null;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -59,7 +59,7 @@ const PlayerStatsPage = ({ stats, onBack }) => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-    </motion.div>
+    </m.div>
   );
 };
 
