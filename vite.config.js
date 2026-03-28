@@ -13,6 +13,28 @@ export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
   },
+  build: {
+    // Fewer legacy polyfills in the bundle; targets evergreen browsers
+    target: 'es2020',
+    rollupOptions: {
+      output: {
+        // Split heavy vendors so no single chunk exceeds the default warning threshold;
+        // total download size is similar, but caching and parallel loading improve.
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('firebase')) return 'vendor-firebase';
+          if (id.includes('framer-motion')) return 'vendor-framer-motion';
+          if (
+            id.includes('/react/') ||
+            id.includes('react-dom') ||
+            id.includes('node_modules/scheduler')
+          ) {
+            return 'vendor-react';
+          }
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({
