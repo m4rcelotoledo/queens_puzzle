@@ -11,7 +11,7 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(css|less|scss|sass)$': '<rootDir>/tests/__mocks__/cssMock.js',
     '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
       '<rootDir>/tests/__mocks__/fileMock.js',
   },
@@ -27,15 +27,13 @@ module.exports = {
   collectCoverageFrom: [
     'src/components/**/*.{js,jsx}',
     'src/utils/**/*.{js,jsx}',
-    '!src/main.jsx',
+    'src/main.jsx',
     '!src/index.css',
     '!src/**/*.stories.{js,jsx}',
     '!src/**/*.config.{js,jsx}',
     '!src/components/LoadingScreen.jsx',
     '!src/components/LoginScreen.jsx',
     '!src/components/Notification.jsx',
-    '!src/components/PlayerSetupModal.jsx',
-    '!src/components/PodiumIcon.jsx',
   ],
   coverageThreshold: {
     global: {
