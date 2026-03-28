@@ -1,11 +1,11 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { getMonthName, getWeekRange } from '../../../src/utils/calculations';
+import { getMonthName, getWeekRange } from '../../src/utils/calculations';
 
 // Mock calculation functions to check calls
-jest.mock('../../../src/utils/calculations', () => ({
-  ...jest.requireActual('../../../src/utils/calculations'),
+jest.mock('../../src/utils/calculations', () => ({
+  ...jest.requireActual('../../src/utils/calculations'),
   getMonthName: jest.fn((date) => {
     if (!date || !(date instanceof Date)) return '';
     return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
@@ -27,45 +27,54 @@ jest.mock('../../../src/utils/calculations', () => ({
   validateTimes: jest.fn()
 }));
 
-// Mock App.jsx to avoid problems with import.meta.env
+// Mock App.jsx: mirrors layout (flex column + footer) and copy from the real app shell.
 const MockApp = jest.fn(() => {
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen" data-testid="app-container">
-      <div data-testid="dark-mode-toggle">
-        <button data-testid="dark-mode-button">☀️</button>
-      </div>
-      <div data-testid="loading-screen">Carregando...</div>
-      <div data-testid="login-screen">
-        <button data-testid="login-button">Login</button>
-      </div>
-      <div data-testid="player-setup-modal">
-        <button data-testid="setup-button">Configurar Jogadores</button>
-      </div>
-      <div data-testid="scoreboard-view">
-        <h1>Queens Puzzle Ranking</h1>
-        <div data-testid="time-input-form">
-          <div>
-            <label>João</label>
-            <input type="number" data-testid="time-input-João" />
-          </div>
-          <button data-testid="save-button">Salvar</button>
+    <div
+      className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans flex flex-col"
+      data-testid="app-container"
+    >
+      <div className="flex-1">
+        <div data-testid="dark-mode-toggle">
+          <button data-testid="dark-mode-button">☀️</button>
         </div>
-        <button data-testid="view-stats-button">Ver Estatísticas</button>
-        <button data-testid="manage-players-button">Gerenciar</button>
+        <div data-testid="loading-screen">Carregando...</div>
+        <div data-testid="login-screen">
+          <button data-testid="login-button">Login</button>
+        </div>
+        <div data-testid="player-setup-modal">
+          <button data-testid="setup-button">Configurar Jogadores</button>
+        </div>
+        <div data-testid="scoreboard-view">
+          <h1>🏆 Placar do Puzzle 👑</h1>
+          <p>Acompanhe os mestres do tabuleiro!</p>
+          <div data-testid="time-input-form">
+            <div>
+              <label>João</label>
+              <input type="number" data-testid="time-input-João" />
+            </div>
+            <button data-testid="save-button">Salvar</button>
+          </div>
+          <button data-testid="view-stats-button">Ver Estatísticas</button>
+          <button data-testid="manage-players-button">Gerenciar</button>
+        </div>
+        <div data-testid="player-stats-page">
+          <h2>João - Estatísticas</h2>
+          <button data-testid="back-button">Voltar</button>
+        </div>
+        <div data-testid="notification" className="success">
+          Tempos salvos com sucesso!
+          <button data-testid="dismiss-notification">×</button>
+        </div>
       </div>
-      <div data-testid="player-stats-page">
-        <h2>João - Estatísticas</h2>
-        <button data-testid="back-button">Voltar</button>
-      </div>
-      <div data-testid="notification" className="success">
-        Tempos salvos com sucesso!
-        <button data-testid="dismiss-notification">×</button>
-      </div>
+      <footer data-testid="app-footer" role="contentinfo">
+        <span className="font-mono">v0.0.0-test</span>
+      </footer>
     </div>
   );
 });
 
-jest.mock('../../../src/App', () => MockApp);
+jest.mock('../../src/App', () => MockApp);
 
 describe('App', () => {
   beforeEach(() => {
@@ -75,10 +84,19 @@ describe('App', () => {
 
   test('should render the main application structure', () => {
     render(<MockApp />);
-    expect(screen.getByTestId('app-container')).toBeInTheDocument();
+    const shell = screen.getByTestId('app-container');
+    expect(shell).toBeInTheDocument();
+    expect(shell).toHaveClass('flex', 'flex-col');
     expect(screen.getByTestId('dark-mode-toggle')).toBeInTheDocument();
     expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
     expect(screen.getByTestId('login-screen')).toBeInTheDocument();
+  });
+
+  test('should show version footer like the authenticated app shell', () => {
+    render(<MockApp />);
+    const footer = screen.getByTestId('app-footer');
+    expect(footer).toHaveAttribute('role', 'contentinfo');
+    expect(footer).toHaveTextContent('v0.0.0-test');
   });
 
   test('should have dark mode toggle', () => {
@@ -142,8 +160,9 @@ describe('App', () => {
 
   test('should have main ranking title', () => {
     render(<MockApp />);
-    const title = screen.getByText('Queens Puzzle Ranking');
+    const title = screen.getByRole('heading', { level: 1, name: /placar do puzzle/i });
     expect(title).toBeInTheDocument();
+    expect(screen.getByText(/acompanhe os mestres do tabuleiro/i)).toBeInTheDocument();
   });
 
   test('should have player stats title', () => {
