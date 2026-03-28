@@ -230,15 +230,18 @@ export default function App() {
       setScores(prevScores => ({ ...prevScores, [dateString]: scoreData }));
 
       // 3. Sends an event to Analytics (does not block the UI)
-      try {
-        const { getAnalytics, isSupported, logEvent } = await import('firebase/analytics');
-        if (firebaseAppRef.current && (await isSupported())) {
-          const analytics = getAnalytics(firebaseAppRef.current);
-          logEvent(analytics, 'score_saved', { date: dateString, player_count: results.length });
-        }
-      } catch {
-        /* analytics is optional */
-      }
+      scheduleIdleTask(() => {
+        import('firebase/analytics')
+          .then(async ({ getAnalytics, isSupported, logEvent }) => {
+            if (firebaseAppRef.current && (await isSupported())) {
+              const analytics = getAnalytics(firebaseAppRef.current);
+              logEvent(analytics, 'score_saved', { date: dateString, player_count: results.length });
+            }
+          })
+          .catch(() => {
+            /* analytics is optional */
+          });
+      });
 
       // 4. Shows the success notification
       setNotification({ message: 'Placar salvo com sucesso!', type: 'success' });
