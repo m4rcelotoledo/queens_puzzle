@@ -33,7 +33,6 @@ module.exports = {
     '!src/**/*.config.{js,jsx}',
     '!src/components/LoadingScreen.jsx',
     '!src/components/LoginScreen.jsx',
-    '!src/components/Notification.jsx',
   ],
   coverageThreshold: {
     global: {

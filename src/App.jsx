@@ -8,7 +8,6 @@ import AppBranding from './components/AppBranding';
 import DarkModeToggle from './components/DarkModeToggle';
 import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
-import Notification from './components/Notification';
 import PodiumIcon from './components/PodiumIcon';
 import TimeInputForm from './components/TimeInputForm';
 import AppFooter from './components/AppFooter';
@@ -43,7 +42,6 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState('daily');
   const [times, setTimes] = useState({});
-  const [notification, setNotification] = useState({ message: '', type: '' });
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
   const [currentView, setCurrentView] = useState('scoreboard');
@@ -319,7 +317,6 @@ export default function App() {
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans flex flex-col transition-colors duration-300">
       <AnimatePresence>
-        {notification.message && <Notification message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: '' })} />}
         {showPlayerManager && isAllowed && (
           <Suspense fallback={null}>
             <PlayerManagerModal
