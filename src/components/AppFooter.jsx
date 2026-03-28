@@ -4,8 +4,8 @@ import React from 'react';
  * Shows app version (from package.json at build time). Not used on the login screen.
  */
 export default function AppFooter({ variant = 'default' }) {
-  // Inlined at build via vite `define`; Jest sets process.env.VITE_APP_VERSION in setupTests.js
-  const version = process.env.VITE_APP_VERSION ?? 'dev';
+  // Inlined at build via vite `define`; Jest mocks import.meta.env in setupTests.js
+  const version = import.meta.env.VITE_APP_VERSION ?? 'dev';
   const base =
     'py-2 px-4 text-center text-xs border-t transition-colors';
   const theme =
