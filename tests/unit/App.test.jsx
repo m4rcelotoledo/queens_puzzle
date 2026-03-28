@@ -1,9 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { getMonthName, getWeekRange } from '../../src/utils/calculations';
+import App from '../../src/App.jsx';
 
-// Mock calculation functions to check calls
+// Mock calculation functions to check calls (real App still loads this module; spies + partial mock)
 jest.mock('../../src/utils/calculations', () => ({
   ...jest.requireActual('../../src/utils/calculations'),
   getMonthName: jest.fn((date) => {
@@ -25,6 +26,38 @@ jest.mock('../../src/utils/calculations', () => ({
   calculateWeeklyPodium: jest.fn(),
   calculateMonthlyPodium: jest.fn(),
   validateTimes: jest.fn()
+}));
+
+// Overrides setupTests for this file: auth must resolve to logged-out user for real App smoke test
+jest.mock('firebase/app', () => ({
+  initializeApp: jest.fn(() => ({ name: '[DEFAULT]' })),
+}));
+
+jest.mock('firebase/analytics', () => ({
+  getAnalytics: jest.fn(() => ({})),
+  logEvent: jest.fn(),
+  isSupported: jest.fn(() => Promise.resolve(true)),
+}));
+
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn(() => ({})),
+  onAuthStateChanged: jest.fn((_auth, callback) => {
+    queueMicrotask(() => callback(null));
+    return jest.fn();
+  }),
+  GoogleAuthProvider: jest.fn(function GoogleAuthProvider() {}),
+  signInWithPopup: jest.fn(),
+  signOut: jest.fn(),
+  getIdTokenResult: jest.fn(() => Promise.resolve({ claims: { isAllowed: false } })),
+}));
+
+jest.mock('firebase/firestore', () => ({
+  getFirestore: jest.fn(() => ({})),
+  doc: jest.fn(() => ({})),
+  setDoc: jest.fn(() => Promise.resolve()),
+  onSnapshot: jest.fn(() => jest.fn()),
+  collection: jest.fn(() => ({})),
+  query: jest.fn(() => ({})),
 }));
 
 // Mock App.jsx: mirrors layout (flex column + footer) and copy from the real app shell.
@@ -74,9 +107,7 @@ const MockApp = jest.fn(() => {
   );
 });
 
-jest.mock('../../src/App', () => MockApp);
-
-describe('App', () => {
+describe('App (shell mock — layout contract)', () => {
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
@@ -187,6 +218,20 @@ describe('App', () => {
 
     // Since MockApp doesn't render the real modal, we'll just check if the button was clicked
     expect(manageButton).toBeInTheDocument();
+  });
+});
+
+describe('App (real component, Firebase mocked)', () => {
+  it('renders login after auth resolves with no user', async () => {
+    render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Entrar com Google/i })).toBeInTheDocument();
+    });
   });
 });
 

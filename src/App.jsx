@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getAnalytics, logEvent } from "firebase/analytics";
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, getIdTokenResult } from 'firebase/auth';
 import { getFirestore, doc, setDoc, onSnapshot, collection, query } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,9 +8,6 @@ import DarkModeToggle from './components/DarkModeToggle';
 import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import Notification from './components/Notification';
-import PlayerSetupModal from './components/PlayerSetupModal';
-import PlayerManagerModal from './components/PlayerManagerModal';
-import PlayerStatsPage from './components/PlayerStatsPage';
 import PodiumIcon from './components/PodiumIcon';
 import TimeInputForm from './components/TimeInputForm';
 import AppFooter from './components/AppFooter';
@@ -24,6 +20,11 @@ import {
   getWeekRange,
   getMonthName
 } from './utils/calculations';
+import { scheduleIdleTask } from './utils/scheduleIdleTask';
+
+const PlayerSetupModal = lazy(() => import('./components/PlayerSetupModal'));
+const PlayerManagerModal = lazy(() => import('./components/PlayerManagerModal'));
+const PlayerStatsPage = lazy(() => import('./components/PlayerStatsPage'));
 
 // --- Main Component of the Application ---
 export default function App() {
@@ -47,6 +48,8 @@ export default function App() {
   const [currentView, setCurrentView] = useState('scoreboard');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [showPlayerManager, setShowPlayerManager] = useState(false);
+
+  const firebaseAppRef = useRef(null);
 
   const appId = 'queens-puzzle';
 
@@ -73,12 +76,22 @@ export default function App() {
         measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
     };
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    firebaseAppRef.current = app;
     const firestoreDb = getFirestore(app);
     const firebaseAuth = getAuth(app);
 
     setDb(firestoreDb);
     setAuth(firebaseAuth);
+
+    // Defer Analytics (gtag) until the browser is idle — keeps first paint lighter
+    scheduleIdleTask(() => {
+      import('firebase/analytics')
+        .then(async ({ getAnalytics, isSupported }) => {
+          if (!firebaseAppRef.current) return;
+          if (await isSupported()) getAnalytics(firebaseAppRef.current);
+        })
+        .catch(() => {});
+    });
 
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
       if (currentUser) {
@@ -217,8 +230,15 @@ export default function App() {
       setScores(prevScores => ({ ...prevScores, [dateString]: scoreData }));
 
       // 3. Sends an event to Analytics (does not block the UI)
-      const analytics = getAnalytics();
-      logEvent(analytics, 'score_saved', { date: dateString, player_count: results.length });
+      try {
+        const { getAnalytics, isSupported, logEvent } = await import('firebase/analytics');
+        if (firebaseAppRef.current && (await isSupported())) {
+          const analytics = getAnalytics(firebaseAppRef.current);
+          logEvent(analytics, 'score_saved', { date: dateString, player_count: results.length });
+        }
+      } catch {
+        /* analytics is optional */
+      }
 
       // 4. Shows the success notification
       setNotification({ message: 'Placar salvo com sucesso!', type: 'success' });
@@ -276,7 +296,9 @@ export default function App() {
     if (appStatus === 'SETUP_PLAYERS' && isAllowed) {
       return (
         <>
-          <PlayerSetupModal onSetupComplete={handlePlayerSetup} />
+          <Suspense fallback={<LoadingScreen message="Carregando configuração" />}>
+            <PlayerSetupModal onSetupComplete={handlePlayerSetup} />
+          </Suspense>
           <div className="fixed bottom-0 left-0 right-0 z-[60]">
             <AppFooter variant="overlay" />
           </div>
@@ -292,12 +314,14 @@ export default function App() {
       <AnimatePresence>
         {notification.message && <Notification message={notification.message} type={notification.type} onDismiss={() => setNotification({ message: '', type: '' })} />}
         {showPlayerManager && isAllowed && (
-          <PlayerManagerModal
-            players={players}
-            scores={scores}
-            onSetupComplete={handlePlayerSetup}
-            onClose={() => setShowPlayerManager(false)}
-          />
+          <Suspense fallback={null}>
+            <PlayerManagerModal
+              players={players}
+              scores={scores}
+              onSetupComplete={handlePlayerSetup}
+              onClose={() => setShowPlayerManager(false)}
+            />
+          </Suspense>
         )}
       </AnimatePresence>
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
@@ -431,7 +455,9 @@ export default function App() {
               </motion.div>
             ) : (
               <motion.div key="player-stats" initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}>
-                <PlayerStatsPage stats={playerStats} onBack={() => setCurrentView('scoreboard')} />
+                <Suspense fallback={<LoadingScreen message="Carregando estatísticas" />}>
+                  <PlayerStatsPage stats={playerStats} onBack={() => setCurrentView('scoreboard')} />
+                </Suspense>
               </motion.div>
             )}
           </AnimatePresence>
