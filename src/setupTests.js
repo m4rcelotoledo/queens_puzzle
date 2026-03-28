@@ -8,6 +8,7 @@ jest.mock('firebase/app', () => ({
 jest.mock('firebase/analytics', () => ({
   getAnalytics: jest.fn(() => ({})),
   logEvent: jest.fn(),
+  isSupported: jest.fn(() => Promise.resolve(true)),
 }));
 
 jest.mock('firebase/auth', () => ({
