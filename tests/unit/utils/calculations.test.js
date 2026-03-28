@@ -259,7 +259,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should calculate weekly podium correctly', () => {
     // Use a date that works consistently in both UTC and local timezone
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-01': { // Monday - João wins
         date: '2024-01-01',
@@ -338,7 +338,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle tie-breaking with total time correctly', () => {
     // Use a date that works consistently in both UTC and local timezone
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-07': { // Sunday - Maria wins (3 points)
         date: '2024-01-07',
@@ -391,7 +391,7 @@ describe('calculateWeeklyPodium', () => {
 
 
   test('should handle complete tie in weekly podium', () => {
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-07': { // Sunday - Both win (3 points each)
         date: '2024-01-07',
@@ -451,7 +451,7 @@ describe('calculateWeeklyPodium', () => {
   });
 
   test('should handle alphabetical tie-breaking in weekly podium', () => {
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-07': { // Sunday - All players active
         date: '2024-01-07',
@@ -511,7 +511,7 @@ describe('calculateWeeklyPodium', () => {
   });
 
   test('should handle new total time rule correctly - user scenario', () => {
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-07': { // Sunday - All tie (3 points each)
         date: '2024-01-07',
@@ -572,7 +572,7 @@ describe('calculateWeeklyPodium', () => {
     // Test with different date scenarios to ensure robustness
     const testScenarios = [
       {
-        selectedDate: new Date('2024-01-01'),
+        selectedDate: new Date('2024-01-01T12:00:00'),
         scores: {
           '2024-01-01': {
             date: '2024-01-01',
@@ -586,7 +586,7 @@ describe('calculateWeeklyPodium', () => {
         }
       },
       {
-        selectedDate: new Date('2024-06-15'),
+        selectedDate: new Date('2024-06-15T12:00:00'),
         scores: {
           '2024-06-15': {
             date: '2024-06-15',
@@ -627,7 +627,7 @@ describe('calculateWeeklyPodium', () => {
   });
 
   test('should return null for empty players', () => {
-    const selectedDate = new Date('2024-01-01');
+    const selectedDate = new Date('2024-01-01T12:00:00');
     const mockScores = {
       '2024-01-01': {
         date: '2024-01-01',
@@ -644,7 +644,7 @@ describe('calculateWeeklyPodium', () => {
   test('should handle real production scenario correctly', () => {
     // Test the specific scenario from production
     // Use Monday as selected date to ensure both days are in the same week
-    const selectedDate = new Date('2024-07-21'); // Monday
+    const selectedDate = new Date('2024-07-21T12:00:00'); // Monday
     const mockScores = {
       '2024-07-20': { // Saturday - Jhonny wins
         date: '2024-07-20',
@@ -778,7 +778,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle inactive players correctly in weekly podium', () => {
     // Test scenario: Marcelo has 1 point, others haven't played yet
-    const selectedDate = new Date('2024-07-24'); // Wednesday
+    const selectedDate = new Date('2024-07-24T12:00:00'); // Wednesday
     const mockScores = {
       '2024-07-23': { // Tuesday - Marcelo wins
         date: '2024-07-23',
@@ -834,7 +834,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle players becoming active again correctly', () => {
     // Test scenario: James becomes active again
-    const selectedDate = new Date('2024-07-24'); // Wednesday
+    const selectedDate = new Date('2024-07-24T12:00:00'); // Wednesday
     const mockScores = {
       '2024-07-23': { // Tuesday - Marcelo wins
         date: '2024-07-23',
@@ -890,7 +890,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle user scenario correctly - Marcelo should be first', () => {
     // Test the specific scenario from user
-    const selectedDate = new Date('2024-07-23'); // Tuesday
+    const selectedDate = new Date('2024-07-23T12:00:00'); // Tuesday
     const mockScores = {
       '2024-07-23': { // Tuesday - James wins (1 point)
         date: '2024-07-23',
@@ -946,7 +946,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle real user scenario correctly', () => {
     // Test the real scenario from user
-    const selectedDate = new Date('2024-07-23'); // Tuesday
+    const selectedDate = new Date('2024-07-23T12:00:00'); // Tuesday
     const mockScores = {
       '2024-07-23': { // Tuesday - Marcelo wins (1 point)
         date: '2024-07-23',
@@ -1022,7 +1022,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle image scenario correctly', () => {
     // Test the scenario from the images
-    const selectedDate = new Date('2025-07-23'); // Wednesday
+    const selectedDate = new Date('2025-07-23T12:00:00'); // Wednesday
     const mockScores = {
       '2025-07-23': { // Wednesday - James wins (1 point)
         date: '2025-07-23',
@@ -1078,7 +1078,7 @@ describe('calculateWeeklyPodium', () => {
   test('should prioritize players with more games played over better times', () => {
     // Test scenario: Marcelo has 2 wins and 2 games, James has 1 win and 1 game
     // Even though James has better total time, Marcelo should be first because he played more
-    const selectedDate = new Date('2024-07-23'); // Tuesday
+    const selectedDate = new Date('2024-07-23T12:00:00'); // Tuesday
     const mockScores = {
       '2024-07-23': { // Tuesday - Marcelo wins (1 point)
         date: '2024-07-23',
@@ -1141,7 +1141,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle edge case where no conditions are met in weekly podium sorting', () => {
     // This test covers the return 0 case in calculateWeeklyPodium sorting
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-07': { // Sunday - All players have same time
         date: '2024-01-07',
@@ -1182,7 +1182,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle edge case where sorting conditions are not met in weekly podium', () => {
     // This test specifically covers the return 0 case in the weekly sorting function
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-07': { // Sunday - Same player with same time
         date: '2024-01-07',
@@ -1206,7 +1206,7 @@ describe('calculateWeeklyPodium', () => {
 
   test('should handle edge case where no sorting conditions match in weekly podium', () => {
     // This test specifically forces the return a.name.localeCompare(b.name) case in calculateWeeklyPodium
-    const selectedDate = new Date('2024-01-07'); // Sunday
+    const selectedDate = new Date('2024-01-07T12:00:00'); // Sunday
     const mockScores = {
       '2024-01-07': { // Sunday - Exact same object
         date: '2024-01-07',
@@ -1233,7 +1233,7 @@ describe('calculateMonthlyPodium', () => {
   const mockPlayers = ['João', 'Maria', 'Pedro'];
 
   test('should calculate monthly podium correctly', () => {
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // January
         date: '2024-01-01',
@@ -1287,7 +1287,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle monthly podium tie-breaking correctly', () => {
     // Test monthly podium with tie-breaking by total time
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // Monday - João wins
         date: '2024-01-01',
@@ -1367,7 +1367,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle complete tie in monthly podium', () => {
     // Test when players have same wins and same total time in monthly podium
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // Monday - João wins
         date: '2024-01-01',
@@ -1403,7 +1403,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle alphabetical tie-breaking in monthly podium', () => {
     // Test when players have same wins and same total time
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // Monday - Ana wins
         date: '2024-01-01',
@@ -1439,7 +1439,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle complete tie in monthly podium with same wins and time', () => {
     // Test when players have exactly same wins and same total time
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // Monday - Ana wins
         date: '2024-01-01',
@@ -1481,7 +1481,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle edge case where all criteria are equal in monthly podium', () => {
     // This test covers the return a.name.localeCompare(b.name) case in calculateMonthlyPodium
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // Monday - All players tie
         date: '2024-01-01',
@@ -1522,7 +1522,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle edge case where sorting conditions are not met in monthly podium', () => {
     // This test specifically covers the return a.name.localeCompare(b.name) case
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // Monday - Same player with same time
         date: '2024-01-01',
@@ -1548,7 +1548,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle edge case where no sorting conditions match in monthly podium', () => {
     // This test specifically forces the return a.name.localeCompare(b.name) case
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': { // Monday - Exact same object
         date: '2024-01-01',
@@ -1573,7 +1573,7 @@ describe('calculateMonthlyPodium', () => {
   });
 
   test('should return null for empty players', () => {
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const mockScores = {
       '2024-01-01': {
         date: '2024-01-01',
@@ -1704,7 +1704,7 @@ describe('calculateMonthlyPodium', () => {
         ]
       }
     };
-    const selectedDate = new Date('2024-01-01');
+    const selectedDate = new Date('2024-01-01T12:00:00');
 
     const result = calculateWeeklyPodium(players, scores, selectedDate);
 
@@ -1748,7 +1748,7 @@ describe('calculateMonthlyPodium', () => {
         ]
       }
     };
-    const selectedDate = new Date('2024-01-01');
+    const selectedDate = new Date('2024-01-01T12:00:00');
 
     const result = calculateWeeklyPodium(players, scores, selectedDate);
 
@@ -1787,7 +1787,7 @@ describe('calculateMonthlyPodium', () => {
 
   test('should handle production error scenario correctly', () => {
     const players = ['Marcelo', 'James', 'Jhonny'];
-    const selectedDate = new Date('2025-11-05');
+    const selectedDate = new Date('2025-11-05T12:00:00');
     const mockScores = {
       '2025-11-01': {
         date: '2025-11-01',
@@ -1911,7 +1911,7 @@ describe('validateTimes', () => {
 
 describe('getWeekRange', () => {
   test('should return the correct week range', () => {
-    const selectedDate = new Date('2024-01-15'); // Monday
+    const selectedDate = new Date('2024-01-15T12:00:00'); // Monday
     const weekRange = getWeekRange(selectedDate);
 
     // Check string format (should have format DD/MM - DD/MM)
@@ -1923,7 +1923,7 @@ describe('getWeekRange', () => {
   });
 
   test('should handle Sunday correctly', () => {
-    const selectedDate = new Date('2024-01-14'); // Sunday
+    const selectedDate = new Date('2024-01-14T12:00:00'); // Sunday
     const weekRange = getWeekRange(selectedDate);
 
     // Check format
@@ -1949,10 +1949,10 @@ describe('getWeekRange', () => {
   test('should always return a valid week range format', () => {
     // Test with different dates to ensure consistency
     const testDates = [
-      new Date('2024-01-01'), // Monday
-      new Date('2024-01-15'), // Monday
-      new Date('2024-01-14'), // Sunday
-      new Date('2024-06-15'), // June
+      new Date('2024-01-01T12:00:00'), // Monday
+      new Date('2024-01-15T12:00:00'), // Monday
+      new Date('2024-01-14T12:00:00'), // Sunday
+      new Date('2024-06-15T12:00:00'), // June
     ];
 
     testDates.forEach(date => {
@@ -1968,7 +1968,7 @@ describe('getWeekRange', () => {
       new Date('2024-01-01T00:00:00.000Z'), // UTC
       new Date('2024-01-01T12:00:00.000Z'), // UTC noon
       new Date('2024-12-31T23:59:59.999Z'), // End of the year
-      new Date('2024-02-29'), // Leap year
+      new Date('2024-02-29T12:00:00'), // Leap year
     ];
 
     edgeCases.forEach(date => {
@@ -1982,13 +1982,13 @@ describe('getWeekRange', () => {
 
 describe('getMonthName', () => {
   test('should return the formatted month name', () => {
-    const selectedDate = new Date('2024-01-15');
+    const selectedDate = new Date('2024-01-15T12:00:00');
     const monthName = getMonthName(selectedDate);
     expect(monthName).toBe('janeiro de 2024');
   });
 
   test('should handle different months', () => {
-    const selectedDate = new Date('2024-12-15');
+    const selectedDate = new Date('2024-12-15T12:00:00');
     const monthName = getMonthName(selectedDate);
     expect(monthName).toBe('dezembro de 2024');
   });

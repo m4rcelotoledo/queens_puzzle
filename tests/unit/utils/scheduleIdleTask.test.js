@@ -3,9 +3,14 @@ import { scheduleIdleTask } from '../../../src/utils/scheduleIdleTask';
 describe('scheduleIdleTask', () => {
   const originalRIC = global.window.requestIdleCallback;
   const originalST = global.setTimeout;
+  const ricExisted = 'requestIdleCallback' in global.window;
 
   afterEach(() => {
-    global.window.requestIdleCallback = originalRIC;
+    if (ricExisted) {
+      global.window.requestIdleCallback = originalRIC;
+    } else {
+      delete global.window.requestIdleCallback;
+    }
     global.setTimeout = originalST;
     jest.useRealTimers();
   });

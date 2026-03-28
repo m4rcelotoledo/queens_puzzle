@@ -253,7 +253,10 @@ export default function App() {
   };
 
   // --- Podium Calculation Logic (Memorized) ---
-  const dateString = selectedDate.toISOString().split('T')[0];
+  const _y = selectedDate.getFullYear();
+  const _m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+  const _d = String(selectedDate.getDate()).padStart(2, '0');
+  const dateString = `${_y}-${_m}-${_d}`;
   const isSunday = selectedDate.getDay() === 0;
 
   const dailyPodium = useMemo(() => {

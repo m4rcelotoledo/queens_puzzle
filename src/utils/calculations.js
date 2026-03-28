@@ -112,7 +112,10 @@ export const calculateWeeklyPodium = (players, scores, selectedDate) => {
   for (let i = 0; i < DAYS_IN_WEEK; i++) {
     const currentDate = new Date(startOfWeek);
     currentDate.setDate(startOfWeek.getDate() + i);
-    const currentDateString = currentDate.toISOString().split('T')[0];
+    const y = currentDate.getFullYear();
+    const m = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const d = String(currentDate.getDate()).padStart(2, '0');
+    const currentDateString = `${y}-${m}-${d}`;
     const dayScore = scores[currentDateString];
 
     if (dayScore && dayScore.results && dayScore.results.some(r => r.totalTime > 0)) {
@@ -206,7 +209,7 @@ export const calculateMonthlyPodium = (players, scores, selectedDate) => {
   const monthlyGames = players.reduce((acc, name) => ({ ...acc, [name]: 0 }), {});
 
   Object.values(scores).forEach(score => {
-    const scoreDate = new Date(score.date + 'T12:00:00Z');
+    const scoreDate = new Date(score.date + 'T12:00:00');
     if (scoreDate.getFullYear() === year && scoreDate.getMonth() === month) {
       if (score.results && !score.results.every(r => r.totalTime === 0)) {
         const sortedDay = [...score.results].sort((a, b) => {
