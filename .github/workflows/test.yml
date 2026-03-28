@@ -2,9 +2,9 @@ name: Unit Tests
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main, master ]
+    branches: [master]
 
 jobs:
   test:
@@ -19,38 +19,38 @@ jobs:
         node-version: [24.x]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-    - name: Setup Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
 
-    - name: Install dependencies
-      run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Run unit tests
-      run: npm run test:ci
+      - name: Run unit tests
+        run: npm run test:ci
 
-    - name: Upload coverage to Codecov
-      if: ${{ !cancelled() }}
-      uses: codecov/codecov-action@v5
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage/lcov.info
-        flags: unittests
-        name: codecov-umbrella
+      - name: Upload coverage to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
 
-    - name: Upload test results to Codecov
-      if: ${{ !cancelled() }}
-      uses: codecov/test-results-action@v1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
 
-    - name: Verify coverage
-      run: |
-        if [ ${{ matrix.node-version }} == '24.x' ]; then
-          npm run test:coverage
-        fi
+      - name: Verify coverage
+        run: |
+          if [ ${{ matrix.node-version }} == '24.x' ]; then
+            npm run test:coverage
+          fi
