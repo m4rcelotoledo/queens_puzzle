@@ -58,9 +58,8 @@ describe('LoginScreen', () => {
   it('renders Google icon', () => {
     render(<LoginScreen onLogin={mockOnLogin} />);
 
-    const googleIcon = screen.getByRole('button').querySelector('img');
+    const googleIcon = screen.getByRole('button').querySelector('svg');
     expect(googleIcon).toBeInTheDocument();
-    expect(googleIcon).toHaveAttribute('alt', 'Google icon');
   });
 
   it('has button with correct style', () => {
