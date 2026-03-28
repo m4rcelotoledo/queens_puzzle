@@ -1,7 +1,7 @@
 {
   "name": "queens-puzzle",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -38,5 +38,8 @@
     "tailwindcss": "^4.1.17",
     "vite": "^7.1.11",
     "vite-plugin-pwa": "^1.2.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.5"
   }
 }
