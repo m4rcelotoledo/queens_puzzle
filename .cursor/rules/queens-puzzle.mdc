@@ -14,7 +14,7 @@ alwaysApply: true
 
 ## Código
 
-- React + Vite + Tailwind; comentários em **inglês**; UI e mensagens ao utilizador em **pt-BR** quando o app já usa esse idioma.
+- React + Vite + Tailwind; comentários em **inglês**; UI e mensagens ao **usuário** em **pt-BR** quando o app já usa esse idioma.
 - Firebase: paths `artifacts/queens-puzzle/config/players` e `artifacts/queens-puzzle/public/data/scores/{date}`.
 - Cuidado com **timezone** ao mudar datas; seguir testes e `docs/DOCUMENTACAO_TECNICA.md` / `docs/PROJECT_RULES.md`.
 

@@ -21,7 +21,7 @@ const PlayerSetupModal = ({ onSetupComplete }) => {
       <div className="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Configure os Jogadores</h2>
         <form onSubmit={handleSubmit}>
-          <p className="text-gray-600 mb-4">Digite o nome dos 3 participantes. Isto só precisa de ser feito uma vez.</p>
+          <p className="text-gray-600 mb-4">Digite o nome dos 3 participantes. Isso só precisa ser feito uma vez.</p>
           {playerNames.map((_, index) => (
             <div key={index} className="mb-4">
               <input

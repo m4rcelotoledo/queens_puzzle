@@ -75,7 +75,7 @@ Critérios, **nesta ordem**:
 
 - `src/components/` — UI; componentes recebem dados e callbacks por **props** (`TimeInputForm` é exemplo explícito).
 - `src/utils/calculations.js` — funções puras exportadas; **JSDoc** em inglês para parâmetros e retornos.
-- Comentários no código em **inglês**; textos de interface e mensagens ao utilizador em **português (pt-BR)** onde já é o padrão.
+- Comentários no código em **inglês**; textos de interface e mensagens ao **usuário** em **português brasileiro (pt-BR)** onde já é o padrão.
 - `functions/` — Cloud Function v2 (`setAllowedUserClaim`) para definir `isAllowed`; região `southamerica-east1`.
 
 ### 3.3 Dados e Firestore
