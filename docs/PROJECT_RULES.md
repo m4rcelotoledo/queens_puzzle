@@ -6,7 +6,7 @@ Este documento consolida a auditoria do repositório: domínio (regras de negóc
 
 ## 1. Visão do produto
 
-Aplicação web para **registrar tempos** de um grupo no “Queens Puzzle”, calcular **pódios** (diário, semanal, mensal) e **estatísticas** por jogador. Dados em **Firestore**; acesso com **Firebase Auth (Google)** e permissão administrativa via **custom claim** `isAllowed`.
+Aplicação web para **registrar tempos** de um grupo no "Queens Puzzle", calcular **pódios** (diário, semanal, mensal) e **estatísticas** por jogador. Dados em **Firestore**; acesso com **Firebase Auth (Google)** e permissão administrativa via **custom claim** `isAllowed`.
 
 ---
 
@@ -14,7 +14,7 @@ Aplicação web para **registrar tempos** de um grupo no “Queens Puzzle”, ca
 
 ### 2.1 Pontuação
 
-- **Dia útil (seg–sáb):** 1 ponto por vitória no dia.
+- **Dia útil (seg-sáb):** 1 ponto por vitória no dia.
 - **Domingo:** 3 pontos por vitória (`dayOfWeek === 0`).
 - Vitória = **1º lugar** no ranking **do dia**, após ordenar os resultados (ver abaixo). Apenas entradas com `totalTime > 0` contam para vitória e para acumulados de tempo/partidas.
 
@@ -38,7 +38,7 @@ Critérios, **nesta ordem**:
 3. **Tempo total** no período (`totalTime`) — **soma de todos os dias** com tempo > 0; **menor** total primeiro.
 4. **Nome** — ordem alfabética.
 
-**Semana:** segunda a domingo; início da semana na **segunda-feira** (domingo “volta” 6 dias).
+**Semana:** segunda a domingo; início da semana na **segunda-feira** (domingo "volta" 6 dias).
 
 **Mês:** filtra scores cujo `date` cai no mês/ano da data selecionada (uso de `T12:00:00Z` no parse mensal para estabilidade de fuso).
 
@@ -54,12 +54,12 @@ Critérios, **nesta ordem**:
 ### 2.7 Jogadores (UI)
 
 - **Setup inicial:** três campos fixos; todos obrigatórios (`PlayerSetupModal`).
-- **Gestão posterior:** nomes 2–20 caracteres, sem duplicatas (case-insensitive); remoção com confirmação se houver histórico com tempo > 0 (`PlayerManagerModal`).
-- O README menciona limites genéricos (ex.: 2–10 jogadores); o fluxo inicial assume **3** nomes — ao evoluir limites, alinhar **código, testes e documentação**.
+- **Gestão posterior:** nomes 2-20 caracteres, sem duplicatas (case-insensitive); remoção com confirmação se houver histórico com tempo > 0 (`PlayerManagerModal`).
+- O README menciona limites genéricos (ex.: 2-10 jogadores); o fluxo inicial assume **3** nomes — ao evoluir limites, alinhar **código, testes e documentação**.
 
 ### 2.8 Tempos (UI atual)
 
-- Entrada numérica ≥ 0; o README cita faixas (ex.: 1–999 s, bônus domingo até 300 s) como **regra de produto desejada** — validação estrita no backend/UI pode ainda não refletir tudo; mudanças devem ser **consistentes** entre `App.jsx` / formulários e testes.
+- Entrada numérica ≥ 0; o README cita faixas (ex.: 1-999 s, bônus domingo até 300 s) como **regra de produto desejada** — validação estrita no backend/UI pode ainda não refletir tudo; mudanças devem ser **consistentes** entre `App.jsx` / formulários e testes.
 
 ---
 
