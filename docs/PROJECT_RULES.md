@@ -112,7 +112,7 @@ Critérios, **nesta ordem**:
 ### 4.3 Ao mudar regras de ranking
 
 1. Atualizar **`calculations.js`**.
-2. Atualizar ou adicionar testes em **`tests/unit/utils/calculations.test.js`** (e integração em `App.test.jsx` se o fluxo mudar).
+2. Atualizar ou adicionar testes em **`tests/unit/utils/calculations.test.js`** (e integração em **`tests/unit/App.test.jsx`** se o fluxo mudar).
 3. Atualizar **README** / exemplos se o comportamento visível ou documentado mudar.
 
 ---
