@@ -1,0 +1,29 @@
+---
+description: Padrões do Queens Puzzle — domínio, código, testes e boas práticas para o repositório
+alwaysApply: true
+---
+
+# Queens Puzzle — contexto do projeto
+
+## Domínio
+
+- App de ranking para o jogo Queens Puzzle: tempos no Firestore, Auth Google, claim `isAllowed` para administrar jogadores e salvar placares.
+- Pontuação: **1 ponto** por vitória nos dias normais; **3 pontos** no domingo (`dayOfWeek === 0`). Vitória = 1º lugar no dia após ordenar por tempo (>0 antes de 0; menor tempo; empate por nome).
+- **Semanal/mensal:** desempate: `wins` ↓ → `gamesPlayed` ↓ → `totalTime` (soma de todos os dias com tempo > 0) ↑ → nome. **Diário:** regras em `calculateDailyPodium` (inclui `null` se todos tempos 0).
+- Lógica numérica e datas: **`src/utils/calculations.js`** — não duplicar regras nos componentes.
+
+## Código
+
+- React + Vite + Tailwind; comentários em **inglês**; UI e mensagens ao utilizador em **pt-BR** quando o app já usa esse idioma.
+- Firebase: paths `artifacts/queens-puzzle/config/players` e `artifacts/queens-puzzle/public/data/scores/{date}`.
+- Cuidado com **timezone** ao mudar datas; seguir testes e `docs/DOCUMENTACAO_TECNICA.md` / `docs/PROJECT_RULES.md`.
+
+## Testes
+
+- Jest + RTL; setup em `src/setupTests.js`. Alterar ranking ⇒ atualizar **`tests/unit/utils/calculations.test.js`** (e fluxo em testes de App se necessário). Manter cobertura global (thresholds em `jest.config.cjs`).
+
+## Escopo de mudanças
+
+- Mudanças mínimas e focadas; sem refactors gratuitos nem ficheiros não pedidos. Documentação: preferir atualizar `docs/PROJECT_RULES.md` quando regras de negócio ou convenções mudarem.
+
+Detalhes e checklist: **`docs/PROJECT_RULES.md`**.
