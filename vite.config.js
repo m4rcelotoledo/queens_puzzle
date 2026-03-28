@@ -49,7 +49,7 @@ export default defineConfig({
             handler: 'NetworkOnly',
           },
           {
-            urlPattern: /^https:\/\/.*\.google\.com\/.*/i,
+            urlPattern: /^https:\/\/[-a-zA-Z0-9.]*\.google\.com\/.*/i,
             handler: 'NetworkOnly',
           },
         ],
