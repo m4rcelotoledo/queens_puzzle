@@ -60,9 +60,7 @@ process.env.VITE_FIREBASE_STORAGE_BUCKET = 'test.appspot.com';
 process.env.VITE_FIREBASE_MESSAGING_SENDER_ID = '123456789';
 process.env.VITE_FIREBASE_APP_ID = '1:123456789:web:test';
 process.env.VITE_FIREBASE_MEASUREMENT_ID = 'G-TEST';
-process.env.VITE_APP_VERSION = '0.0.0-test';
-
-// import.meta.env mock
+// import.meta.env mock (matches Vite client; version used by AppFooter)
 global.import = {
   meta: {
     env: {
@@ -73,6 +71,7 @@ global.import = {
       VITE_FIREBASE_MESSAGING_SENDER_ID: '123456789',
       VITE_FIREBASE_APP_ID: '1:123456789:web:test',
       VITE_FIREBASE_MEASUREMENT_ID: 'G-TEST',
+      VITE_APP_VERSION: '0.0.0-test',
     }
   }
 };
