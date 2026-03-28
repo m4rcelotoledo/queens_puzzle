@@ -26,8 +26,9 @@ Este documento descreve a implementação de testes unitários para o projeto **
 ```
 tests/
 ├── unit/
-│   ├── components/           # Testes de componentes React
-│   │   ├── App.test.jsx
+│   ├── App.test.jsx         # Shell / integração com mocks (espelha src/App.jsx na raiz de src)
+│   ├── main.test.jsx        # Bootstrap (entry)
+│   ├── components/          # Testes de componentes em src/components/
 │   │   ├── TimeInputForm.test.jsx
 │   │   ├── PlayerStatsPage.test.jsx
 │   │   └── DarkModeToggle.test.jsx
@@ -150,7 +151,9 @@ debugDate('2024-01-01T12:00:00Z');
 
 ---
 
-### 1. Componente Principal (`App.test.jsx`)
+### 1. App principal (`tests/unit/App.test.jsx`)
+
+Testa o shell da aplicação com mock de `src/App.jsx` (o arquivo-fonte fica na raiz de `src/`, não em `components/`).
 
 #### Funcionalidades Testadas
 - ✅ Renderização da estrutura principal da aplicação
