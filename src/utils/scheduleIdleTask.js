@@ -3,7 +3,7 @@
  * Used to defer non-critical work (e.g. Firebase Analytics) off the critical path.
  */
 export function scheduleIdleTask(fn) {
-  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+  if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
     window.requestIdleCallback(() => fn(), { timeout: 4000 });
   } else {
     setTimeout(fn, 1);
