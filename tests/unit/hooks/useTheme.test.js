@@ -1,0 +1,56 @@
+import { renderHook, act } from '@testing-library/react';
+import { useTheme } from '../../../src/hooks/useTheme';
+
+describe('useTheme', () => {
+  let storage;
+
+  beforeEach(() => {
+    storage = {};
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key) =>
+      Object.prototype.hasOwnProperty.call(storage, key) ? storage[key] : null
+    );
+    jest.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => {
+      storage[key] = value;
+    });
+    document.documentElement.classList.remove('dark');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('uses localStorage when darkMode is cached', () => {
+    storage.darkMode = 'true';
+    const { result } = renderHook(() => useTheme());
+    expect(result.current[0]).toBe(true);
+  });
+
+  test('falls back to prefers-color-scheme when nothing is cached', () => {
+    window.matchMedia.mockImplementation((query) => ({
+      matches: query === '(prefers-color-scheme: dark)',
+      media: query,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
+    const { result } = renderHook(() => useTheme());
+    expect(result.current[0]).toBe(true);
+  });
+
+  test('persists dark class and localStorage when toggling', () => {
+    const { result } = renderHook(() => useTheme());
+    act(() => {
+      result.current[1](true);
+    });
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(storage.darkMode).toBe('true');
+
+    act(() => {
+      result.current[1](false);
+    });
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    expect(storage.darkMode).toBe('false');
+  });
+});
