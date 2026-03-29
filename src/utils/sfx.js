@@ -1,8 +1,21 @@
 // Web Audio API Synthesizer para Micro-interações sem dependências externas
 
+let sharedCtx = null;
+export const __resetSharedCtx = () => { sharedCtx = null; };
+
+function getAudioContext() {
+  if (!sharedCtx) {
+    sharedCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (sharedCtx.state === 'suspended') {
+    sharedCtx.resume();
+  }
+  return sharedCtx;
+}
+
 export function playClickSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
@@ -26,7 +39,7 @@ export function playClickSound() {
 
 export function playSuccessSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const osc = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
@@ -49,7 +62,7 @@ export function playSuccessSound() {
 
 export function playFanfareSound() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
     const notes = [
       { f: 523.25, time: 0, dur: 0.1 },     // C5
       { f: 659.25, time: 0.15, dur: 0.1 },  // E5

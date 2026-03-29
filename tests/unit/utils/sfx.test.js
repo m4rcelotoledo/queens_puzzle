@@ -1,4 +1,4 @@
-import { playClickSound, playSuccessSound, playFanfareSound } from '../../../src/utils/sfx';
+import { playClickSound, playSuccessSound, playFanfareSound, __resetSharedCtx } from '../../../src/utils/sfx';
 
 describe('sfx', () => {
   let mockOscillator;
@@ -6,6 +6,7 @@ describe('sfx', () => {
   let mockCtx;
 
   beforeEach(() => {
+    __resetSharedCtx();
     mockOscillator = {
       connect: jest.fn(),
       type: '',
@@ -62,5 +63,11 @@ describe('sfx', () => {
     });
     global.window.webkitAudioContext = global.window.AudioContext;
     expect(() => playSuccessSound()).not.toThrow();
+  });
+
+  test('reuses a single AudioContext across plays (singleton)', () => {
+    playClickSound();
+    playSuccessSound();
+    expect(global.window.AudioContext).toHaveBeenCalledTimes(1);
   });
 });
