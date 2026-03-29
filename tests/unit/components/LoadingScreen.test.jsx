@@ -60,11 +60,13 @@ describe('LoadingScreen', () => {
     expect(screen.getByText('Carregando...')).toBeInTheDocument();
   });
 
-  it('has centered positioning', () => {
+  it('applies flex centering classes to the spinner and message container', () => {
     render(<LoadingScreen />);
 
-    const centerContainer = screen.getByText('...').parentElement;
-    expect(centerContainer).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
+    const statusRegion = screen.getByRole('status');
+    expect(statusRegion).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
+    expect(statusRegion).toHaveAttribute('aria-live', 'polite');
+    expect(statusRegion).toHaveAttribute('aria-busy', 'true');
   });
 
   it('has light gray background', () => {
@@ -93,5 +95,13 @@ describe('LoadingScreen', () => {
 
     expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
     expect(screen.getByText('Carregando...')).toBeInTheDocument();
+  });
+
+  it('marks spinner SVG as decorative for assistive tech', () => {
+    render(<LoadingScreen message="X" />);
+
+    const svg = document.querySelector('.animate-spin');
+    expect(svg).toHaveAttribute('aria-hidden', 'true');
+    expect(svg).toHaveAttribute('focusable', 'false');
   });
 });
