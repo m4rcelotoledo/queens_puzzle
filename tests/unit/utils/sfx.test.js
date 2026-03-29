@@ -70,4 +70,18 @@ describe('sfx', () => {
     playSuccessSound();
     expect(global.window.AudioContext).toHaveBeenCalledTimes(1);
   });
+
+  test('resumes AudioContext if it is in suspended state', () => {
+    mockCtx.state = 'suspended';
+    mockCtx.resume = jest.fn();
+    playClickSound();
+    expect(mockCtx.resume).toHaveBeenCalled();
+  });
+
+  test('catches errors when AudioContext throws during play', () => {
+    mockCtx.createOscillator = jest.fn(() => {
+      throw new Error('Oscillator failed');
+    });
+    expect(() => playClickSound()).not.toThrow();
+  });
 });
