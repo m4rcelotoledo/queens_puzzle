@@ -1,6 +1,14 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
+import * as firebaseApp from 'firebase/app';
 import * as firebaseAuth from 'firebase/auth';
+import { toast } from 'sonner';
 import { useAuth } from '../../../src/hooks/useAuth';
+
+jest.mock('sonner', () => ({
+  toast: {
+    error: jest.fn(),
+  },
+}));
 
 jest.mock('../../../src/utils/scheduleIdleTask', () => ({
   scheduleIdleTask: (fn) => fn(),
@@ -14,6 +22,7 @@ jest.mock('firebase/analytics', () => ({
 describe('useAuth', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    firebaseApp.getApps.mockReturnValue([]);
     firebaseAuth.onAuthStateChanged.mockImplementation((_auth, callback) => {
       queueMicrotask(() => callback(null));
       return jest.fn();
@@ -48,6 +57,36 @@ describe('useAuth', () => {
       expect(result.current.isAllowed).toBe(true);
       expect(result.current.appStatus).toBe('LOADING_DATA');
     });
+  });
+
+  test('uses getApp when Firebase app already exists (Strict Mode / HMR safe)', () => {
+    firebaseApp.getApps.mockReturnValue([{ name: '[DEFAULT]' }]);
+    firebaseApp.getApp.mockReturnValue({ name: 'reused' });
+    firebaseAuth.onAuthStateChanged.mockImplementation(() => jest.fn());
+
+    renderHook(() => useAuth());
+
+    expect(firebaseApp.initializeApp).not.toHaveBeenCalled();
+    expect(firebaseApp.getApp).toHaveBeenCalled();
+  });
+
+  test('on token refresh failure shows toast and returns to LOGIN', async () => {
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const mockUser = { uid: 'u1' };
+    firebaseAuth.getIdTokenResult.mockRejectedValueOnce(new Error('network'));
+    firebaseAuth.onAuthStateChanged.mockImplementation((_auth, callback) => {
+      queueMicrotask(() => callback(mockUser));
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() => useAuth());
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Erro de sincronização. Por favor refaça o login.');
+      expect(result.current.appStatus).toBe('LOGIN');
+      expect(result.current.user).toBeNull();
+    });
+    errSpy.mockRestore();
   });
 
   test('handleLogin sets auth error on unauthorized-domain', async () => {
