@@ -1,348 +1,195 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { getMonthName, getWeekRange } from '../../src/utils/calculations';
 import App from '../../src/App.jsx';
+import { useAuth } from '../../src/hooks/useAuth';
+import { useGameData } from '../../src/hooks/useGameData';
 
-// Mock calculation functions to check calls (real App still loads this module; spies + partial mock)
-jest.mock('../../src/utils/calculations', () => ({
-  ...jest.requireActual('../../src/utils/calculations'),
-  getMonthName: jest.fn((date) => {
-    if (!date || !(date instanceof Date)) return '';
-    return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
-  }),
-  getWeekRange: jest.fn((date) => {
-    if (!date || !(date instanceof Date)) return '';
-    const monday = new Date(date);
-    const day = monday.getDay();
-    const diff = monday.getDate() - day + (day === 0 ? -6 : 1);
-    monday.setDate(diff);
-    const sunday = new Date(monday);
-    sunday.setDate(monday.getDate() + 6);
-    const format = (d) => d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-    return `${format(monday)} - ${format(sunday)}`;
-  }),
-  calculateDailyPodium: jest.fn(),
-  calculateWeeklyPodium: jest.fn(),
-  calculateMonthlyPodium: jest.fn(),
-  validateTimes: jest.fn()
+jest.mock('sonner', () => ({
+  Toaster: () => null,
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+    warning: jest.fn(),
+  },
 }));
 
-// Overrides setupTests for this file: auth must resolve to logged-out user for real App smoke test
-jest.mock('firebase/app', () => ({
-  initializeApp: jest.fn(() => ({ name: '[DEFAULT]' })),
+jest.mock('canvas-confetti', () => jest.fn());
+
+jest.mock('../../src/utils/sfx', () => ({
+  playSuccessSound: jest.fn(),
 }));
 
-jest.mock('firebase/analytics', () => ({
-  getAnalytics: jest.fn(() => ({})),
-  logEvent: jest.fn(),
-  isSupported: jest.fn(() => Promise.resolve(true)),
+jest.mock('../../src/utils/scheduleIdleTask', () => ({
+  scheduleIdleTask: (fn) => fn(),
 }));
 
-jest.mock('firebase/auth', () => ({
-  getAuth: jest.fn(() => ({})),
-  onAuthStateChanged: jest.fn((_auth, callback) => {
-    queueMicrotask(() => callback(null));
-    return jest.fn();
-  }),
-  GoogleAuthProvider: jest.fn(function GoogleAuthProvider() {}),
-  signInWithPopup: jest.fn(),
-  signOut: jest.fn(),
-  getIdTokenResult: jest.fn(() => Promise.resolve({ claims: { isAllowed: false } })),
-}));
-
-jest.mock('firebase/firestore', () => ({
-  getFirestore: jest.fn(() => ({})),
-  doc: jest.fn(() => ({})),
-  setDoc: jest.fn(() => Promise.resolve()),
-  onSnapshot: jest.fn(() => jest.fn()),
-  collection: jest.fn(() => ({})),
-  query: jest.fn(() => ({})),
-}));
-
-// Mock App.jsx: mirrors layout (flex column + footer) and copy from the real app shell.
-const MockApp = jest.fn(() => {
-  return (
-    <div
-      className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans flex flex-col"
-      data-testid="app-container"
-    >
-      <div className="flex-1">
-        <div data-testid="dark-mode-toggle">
-          <button data-testid="dark-mode-button">☀️</button>
-        </div>
-        <div data-testid="loading-screen">Carregando...</div>
-        <div data-testid="login-screen">
-          <button data-testid="login-button">Login</button>
-        </div>
-        <div data-testid="player-setup-modal">
-          <button data-testid="setup-button">Configurar Jogadores</button>
-        </div>
-        <div data-testid="scoreboard-view">
-          <h1>🏆 Placar do Puzzle 👑</h1>
-          <p>Acompanhe os mestres do tabuleiro!</p>
-          <div data-testid="time-input-form">
-            <div>
-              <label>João</label>
-              <input type="number" data-testid="time-input-João" />
-            </div>
-            <button data-testid="save-button">Salvar</button>
-          </div>
-          <button data-testid="view-stats-button">Ver Estatísticas</button>
-          <button data-testid="manage-players-button">Gerenciar</button>
-        </div>
-        <div data-testid="player-stats-page">
-          <h2>João - Estatísticas</h2>
-          <button data-testid="back-button">Voltar</button>
-        </div>
-        <div data-testid="notification" className="success">
-          Tempos salvos com sucesso!
-          <button data-testid="dismiss-notification">×</button>
-        </div>
-      </div>
-      <footer data-testid="app-footer" role="contentinfo">
-        <span className="font-mono">v0.0.0-test</span>
-      </footer>
-    </div>
+jest.mock('framer-motion', () => {
+  const React = require('react');
+  // Strip motion-only props so React does not forward them to DOM nodes
+  const Passthrough = ({
+    children,
+    initial,
+    animate,
+    exit,
+    transition,
+    whileHover,
+    whileTap,
+    ...rest
+  }) => (
+    <div {...rest}>{children}</div>
   );
+  return {
+    m: new Proxy(
+      {},
+      {
+        get: () => Passthrough,
+      }
+    ),
+    AnimatePresence: ({ children }) => <>{children}</>,
+  };
 });
 
-describe('App (shell mock — layout contract)', () => {
+jest.mock('../../src/hooks/useAuth', () => ({
+  useAuth: jest.fn(),
+}));
+
+jest.mock('../../src/hooks/useGameData', () => ({
+  useGameData: jest.fn(),
+}));
+
+jest.mock('../../src/hooks/useTheme', () => {
+  const setIsDarkMode = jest.fn();
+  return {
+    useTheme: jest.fn(() => [false, setIsDarkMode]),
+  };
+});
+
+const setAppStatus = jest.fn();
+const gameData = {
+  players: null,
+  setPlayers: jest.fn(),
+  scores: {},
+  setScores: jest.fn(),
+};
+
+const defaultAuth = () => ({
+  db: {},
+  auth: {},
+  user: null,
+  authError: null,
+  isAllowed: false,
+  appStatus: 'LOGIN',
+  setAppStatus,
+  handleLogin: jest.fn(),
+  handleLogout: jest.fn(),
+  firebaseAppRef: { current: {} },
+});
+
+describe('App', () => {
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
+    gameData.players = null;
+    gameData.scores = {};
+    gameData.setPlayers = jest.fn();
+    gameData.setScores = jest.fn();
+    useAuth.mockImplementation(defaultAuth);
+    useGameData.mockImplementation(() => gameData);
   });
 
-  test('should render the main application structure', () => {
-    render(<MockApp />);
-    const shell = screen.getByTestId('app-container');
-    expect(shell).toBeInTheDocument();
-    expect(shell).toHaveClass('flex', 'flex-col');
-    expect(screen.getByTestId('dark-mode-toggle')).toBeInTheDocument();
-    expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
-    expect(screen.getByTestId('login-screen')).toBeInTheDocument();
+  test('renders login when appStatus is LOGIN and there is no user', () => {
+    render(<App />);
+    expect(screen.getByRole('button', { name: /Entrar com Google/i })).toBeInTheDocument();
   });
 
-  test('should show version footer like the authenticated app shell', () => {
-    render(<MockApp />);
-    const footer = screen.getByTestId('app-footer');
-    expect(footer).toHaveAttribute('role', 'contentinfo');
-    expect(footer).toHaveTextContent('v0.0.0-test');
+  test('shows loading while auth is resolving', () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      appStatus: 'LOADING_AUTH',
+    }));
+    render(<App />);
+    expect(screen.getByText(/Verificando autenticação/i)).toBeInTheDocument();
   });
 
-  test('should have dark mode toggle', () => {
-    render(<MockApp />);
-    const darkModeButton = screen.getByTestId('dark-mode-button');
-    expect(darkModeButton).toBeInTheDocument();
-    expect(darkModeButton).toHaveTextContent('☀️');
+  test('shows loading while data is loading', () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/u.png', displayName: 'U' },
+      appStatus: 'LOADING_DATA',
+    }));
+    render(<App />);
+    expect(screen.getByText(/Carregando dados/i)).toBeInTheDocument();
   });
 
-  test('should have login screen', () => {
-    render(<MockApp />);
-    const loginButton = screen.getByTestId('login-button');
-    expect(loginButton).toBeInTheDocument();
-    expect(loginButton).toHaveTextContent('Login');
-  });
-
-  test('should have player setup modal', () => {
-    render(<MockApp />);
-    const setupButton = screen.getByTestId('setup-button');
-    expect(setupButton).toBeInTheDocument();
-    expect(setupButton).toHaveTextContent('Configurar Jogadores');
-  });
-
-  test('should have time input form', () => {
-    render(<MockApp />);
-    const timeInputForm = screen.getByTestId('time-input-form');
-    expect(timeInputForm).toBeInTheDocument();
-
-    const timeInput = screen.getByTestId('time-input-João');
-    expect(timeInput).toBeInTheDocument();
-    expect(timeInput).toHaveAttribute('type', 'number');
-  });
-
-  test('should have save button', () => {
-    render(<MockApp />);
-    const saveButton = screen.getByTestId('save-button');
-    expect(saveButton).toBeInTheDocument();
-    expect(saveButton).toHaveTextContent('Salvar');
-  });
-
-  test('should have view stats button', () => {
-    render(<MockApp />);
-    const viewStatsButton = screen.getByTestId('view-stats-button');
-    expect(viewStatsButton).toBeInTheDocument();
-    expect(viewStatsButton).toHaveTextContent('Ver Estatísticas');
-  });
-
-  test('should have player stats page', () => {
-    render(<MockApp />);
-    const playerStatsPage = screen.getByTestId('player-stats-page');
-    expect(playerStatsPage).toBeInTheDocument();
-    expect(playerStatsPage).toHaveTextContent('João - Estatísticas');
-  });
-
-  test('should have notification system', () => {
-    render(<MockApp />);
-    const notification = screen.getByTestId('notification');
-    expect(notification).toBeInTheDocument();
-    expect(notification).toHaveTextContent('Tempos salvos com sucesso!');
-  });
-
-  test('should have main ranking title', () => {
-    render(<MockApp />);
-    const title = screen.getByRole('heading', { level: 1, name: /placar do puzzle/i });
-    expect(title).toBeInTheDocument();
-    expect(screen.getByText(/acompanhe os mestres do tabuleiro/i)).toBeInTheDocument();
-  });
-
-  test('should have player stats title', () => {
-    render(<MockApp />);
-    const statsTitle = screen.getByText('João - Estatísticas');
-    expect(statsTitle).toBeInTheDocument();
-  });
-
-  it('should have player manager button when user is allowed', () => {
-    render(<MockApp />);
-
-    // Simulate that the user is logged in and has permission
-    const manageButton = screen.getByTestId('manage-players-button');
-    expect(manageButton).toBeInTheDocument();
-  });
-
-  it('should open player manager modal when button is clicked', async () => {
-    render(<MockApp />);
-
-    const manageButton = screen.getByTestId('manage-players-button');
-    fireEvent.click(manageButton);
-
-    // Since MockApp doesn't render the real modal, we'll just check if the button was clicked
-    expect(manageButton).toBeInTheDocument();
-  });
-});
-
-describe('App (real component, Firebase mocked)', () => {
-  it('renders login after auth resolves with no user', async () => {
-    render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    );
-
+  test('shows player setup for allowed users when config doc is missing', async () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/a.png', displayName: 'Admin' },
+      isAllowed: true,
+      appStatus: 'SETUP_PLAYERS',
+    }));
+    render(<App />);
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Entrar com Google/i })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Configure os Jogadores/i })).toBeInTheDocument();
     });
   });
-});
 
-// Integration tests to check correct function calls
-describe('Integration with calculation functions', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
+  test('renders main scoreboard when READY with user and players', () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/p.png', displayName: 'Alice' },
+      isAllowed: true,
+      appStatus: 'READY',
+    }));
+    gameData.players = ['João', 'Maria'];
+    render(<App />);
+    expect(screen.getByRole('heading', { level: 1, name: /Placar do Puzzle/i })).toBeInTheDocument();
+    expect(screen.getByText(/Registrar Tempos/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Salvar$/i })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Alice' })).toBeInTheDocument();
   });
 
-  test('getMonthName should be called with valid parameter', () => {
-    const testDate = new Date('2024-01-15');
-    getMonthName(testDate);
-    expect(getMonthName).toHaveBeenCalledWith(testDate);
+  test('shows exploration copy when user is not allowed to edit', () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/g.png', displayName: 'Guest' },
+      isAllowed: false,
+      appStatus: 'READY',
+    }));
+    gameData.players = ['João'];
+    render(<App />);
+    expect(screen.getByText(/Explorar Datas/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Você está no modo de visualização/i)
+    ).toBeInTheDocument();
   });
 
-  test('getWeekRange should be called with valid parameter', () => {
-    const testDate = new Date('2024-01-15');
-    getWeekRange(testDate);
-    expect(getWeekRange).toHaveBeenCalledWith(testDate);
+  test('calls handleLogout when Sair is clicked', () => {
+    const handleLogout = jest.fn();
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/b.png', displayName: 'Bob' },
+      isAllowed: true,
+      appStatus: 'READY',
+      handleLogout,
+    }));
+    gameData.players = ['A'];
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^Sair$/i }));
+    expect(handleLogout).toHaveBeenCalled();
   });
 
-  test('getMonthName should handle invalid parameters', () => {
-    getMonthName(null);
-    getMonthName(undefined);
-    getMonthName('invalid');
-
-    expect(getMonthName).toHaveBeenCalledWith(null);
-    expect(getMonthName).toHaveBeenCalledWith(undefined);
-    expect(getMonthName).toHaveBeenCalledWith('invalid');
-  });
-
-  test('getWeekRange should handle invalid parameters', () => {
-    getWeekRange(null);
-    getWeekRange(undefined);
-    getWeekRange('invalid');
-
-    expect(getWeekRange).toHaveBeenCalledWith(null);
-    expect(getWeekRange).toHaveBeenCalledWith(undefined);
-    expect(getWeekRange).toHaveBeenCalledWith('invalid');
-  });
-
-  test('getMonthName should return empty string when called without parameters', () => {
-    // Now the function has validation and doesn't break
-    expect(() => {
-      // @ts-ignore - Simulating incorrect call
-      getMonthName();
-    }).not.toThrow();
-    expect(getMonthName()).toBe('');
-  });
-
-  test('getWeekRange should return empty string when called without parameters', () => {
-    // Now the function has validation and doesn't break
-    expect(() => {
-      // @ts-ignore - Simulating incorrect call
-      getWeekRange();
-    }).not.toThrow();
-    expect(getWeekRange()).toBe('');
-  });
-
-  test('should detect incorrect function calls', () => {
-    // Test to ensure that the functions always receive parameters
-    const mockGetMonthName = jest.fn();
-    const mockGetWeekRange = jest.fn();
-
-    // Simulate correct calls
-    mockGetMonthName(new Date());
-    mockGetWeekRange(new Date());
-
-    expect(mockGetMonthName).toHaveBeenCalledWith(expect.any(Date));
-    expect(mockGetWeekRange).toHaveBeenCalledWith(expect.any(Date));
-  });
-
-  test('should simulate real App scenario with correct parameters', () => {
-    // Simulate the real App scenario where the App calls the functions
-    const selectedDate = new Date('2024-01-15');
-
-    // Simulate the calls that the App makes
-    const monthName = getMonthName(selectedDate);
-    const weekRange = getWeekRange(selectedDate);
-
-    // Check if the functions were called with correct parameters
-    expect(getMonthName).toHaveBeenCalledWith(selectedDate);
-    expect(getWeekRange).toHaveBeenCalledWith(selectedDate);
-
-    // Check if they return valid values
-    expect(monthName).toBe('janeiro de 2024');
-
-    // Check weekRange format instead of specific value
-    expect(weekRange).toMatch(/^\d{2}\/\d{2} - \d{2}\/\d{2}$/);
-    expect(weekRange).not.toBe('');
-    expect(weekRange).toContain(' - ');
-  });
-
-  test('should prevent the original error of calling without parameters', () => {
-    // This test ensures that the original error cannot happen anymore
-    const originalGetMonthName = getMonthName;
-    const originalGetWeekRange = getWeekRange;
-
-    // Simulate calls without parameters (as they used to happen)
-    expect(() => {
-      // @ts-ignore - Simulating the original error
-      originalGetMonthName();
-    }).not.toThrow();
-
-    expect(() => {
-      // @ts-ignore - Simulating the original error
-      originalGetWeekRange();
-    }).not.toThrow();
-
-    // Check that they return empty string instead of breaking
-    expect(originalGetMonthName()).toBe('');
-    expect(originalGetWeekRange()).toBe('');
+  test('switches weekly view when Semanal is clicked', () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/b2.png', displayName: 'Bob' },
+      isAllowed: true,
+      appStatus: 'READY',
+    }));
+    gameData.players = ['A'];
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: /^Semanal$/i }));
+    expect(screen.getByRole('heading', { name: /Ranking da Semana/i })).toBeInTheDocument();
   });
 });

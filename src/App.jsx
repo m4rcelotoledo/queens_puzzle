@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, getIdTokenResult } from 'firebase/auth';
-import { getFirestore, doc, setDoc, onSnapshot, collection, query } from 'firebase/firestore';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
+import { doc, setDoc } from 'firebase/firestore';
 import { m as motion, AnimatePresence } from 'framer-motion';
+import { Toaster, toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 import AppBranding from './components/AppBranding';
 import DarkModeToggle from './components/DarkModeToggle';
@@ -12,6 +12,9 @@ import PodiumIcon from './components/PodiumIcon';
 import TimeInputForm from './components/TimeInputForm';
 import AppFooter from './components/AppFooter';
 import { useAuth } from './hooks/useAuth';
+import { useTheme } from './hooks/useTheme';
+import { useGameData } from './hooks/useGameData';
+import { playSuccessSound } from './utils/sfx';
 import {
   calculatePlayerStats,
   calculateDailyPodium,
@@ -65,11 +68,11 @@ export default function App() {
       // Update local state immediately for better UX
       setPlayers(playerNames);
 
-      setNotification({ message: 'Jogadores salvos com sucesso!', type: 'success' });
+      toast.success('Jogadores salvos com sucesso!');
       setShowPlayerManager(false); // Close the modal after saving
     } catch (error) {
       console.error("Error setting up players:", error);
-      setNotification({ message: 'Falha ao salvar jogadores.', type: 'error' });
+      toast.error('Falha ao salvar jogadores.');
     }
   };
 
@@ -90,7 +93,7 @@ export default function App() {
 
     // Validate if at least one time was inserted
     if (!validateTimes(times, isSunday)) {
-      setNotification({ message: 'Insira o tempo de pelo menos um jogador.', type: 'warning' });
+      toast.warning('Insira o tempo de pelo menos um jogador.');
       return;
     }
 
@@ -119,14 +122,21 @@ export default function App() {
       });
 
       // 4. Shows the success notification
-      setNotification({ message: 'Placar salvo com sucesso!', type: 'success' });
+      playSuccessSound();
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#4f46e5', '#6366f1', '#eab308', '#22c55e']
+      });
+      toast.success('Placar salvo com sucesso!');
 
       // 5. Clears the form fields
       setTimes({});
 
     } catch (error) {
       console.error("Error saving score: ", error);
-      setNotification({ message: 'Falha ao salvar o placar.', type: 'error' });
+      toast.error('Falha ao salvar o placar.');
     }
   };
 
@@ -164,8 +174,6 @@ export default function App() {
     }
   }, [dateString, scores]);
 
-
-
   // --- State-Based Rendering ---
   if (appStatus !== 'READY' || !user || !players) {
     // Render loading/login/setup screens
@@ -189,9 +197,9 @@ export default function App() {
     return <LoadingScreen message="Inicializando" footer={<AppFooter />} />;
   }
 
-  // If appStatus is 'READY', render the main application
   return (
     <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans flex flex-col transition-colors duration-300">
+      <Toaster position="bottom-center" richColors theme={isDarkMode ? 'dark' : 'light'} />
       <AnimatePresence>
         {showPlayerManager && isAllowed && (
           <Suspense fallback={null}>
@@ -211,7 +219,7 @@ export default function App() {
           <div className="flex items-center space-x-4">
             <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
             <div className="flex items-center space-x-2">
-              <img src={user.photoURL} alt={user.displayName} className="w-10 h-10 rounded-full" />
+              <img src={user?.photoURL} alt={user?.displayName || 'Avatar'} referrerPolicy="no-referrer" className="w-10 h-10 rounded-full bg-gray-200" />
               <button onClick={handleLogout} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Sair</button>
             </div>
           </div>
