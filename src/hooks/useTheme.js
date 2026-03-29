@@ -3,9 +3,13 @@ import { useState, useEffect } from 'react';
 export function useTheme() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check localStorage or system preference, mirroring index.html logic
-    const cached = localStorage.getItem('darkMode');
-    if (cached !== null) {
-      return cached === 'true';
+    try {
+      const cached = localStorage.getItem('darkMode');
+      if (cached !== null) {
+        return cached === 'true';
+      }
+    } catch (e) {
+      // Ignore storage errors
     }
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
@@ -13,10 +17,10 @@ export function useTheme() {
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
+      try { localStorage.setItem('darkMode', 'true'); } catch (e) {}
     } else {
       document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
+      try { localStorage.setItem('darkMode', 'false'); } catch (e) {}
     }
   }, [isDarkMode]);
 

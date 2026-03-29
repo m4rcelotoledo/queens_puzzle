@@ -26,7 +26,8 @@ describe('useTheme', () => {
   });
 
   test('falls back to prefers-color-scheme when nothing is cached', () => {
-    window.matchMedia.mockImplementation((query) => ({
+    const originalMatchMedia = window.matchMedia;
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
       matches: query === '(prefers-color-scheme: dark)',
       media: query,
       addListener: jest.fn(),
@@ -35,8 +36,34 @@ describe('useTheme', () => {
       removeEventListener: jest.fn(),
       dispatchEvent: jest.fn(),
     }));
-    const { result } = renderHook(() => useTheme());
-    expect(result.current[0]).toBe(true);
+    try {
+      const { result } = renderHook(() => useTheme());
+      expect(result.current[0]).toBe(true);
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
+  });
+
+  test('falls back to matchMedia when localStorage getItem throws (e.g. privacy mode)', () => {
+    const originalMatchMedia = window.matchMedia;
+    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('denied');
+    });
+    window.matchMedia = jest.fn().mockImplementation((query) => ({
+      matches: query === '(prefers-color-scheme: dark)',
+      media: query,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    }));
+    try {
+      const { result } = renderHook(() => useTheme());
+      expect(result.current[0]).toBe(true);
+    } finally {
+      window.matchMedia = originalMatchMedia;
+    }
   });
 
   test('persists dark class and localStorage when toggling', () => {
