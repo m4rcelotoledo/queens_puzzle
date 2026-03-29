@@ -175,43 +175,33 @@ export default function App() {
   }, [dateString, scores]);
 
   // --- State-Based Rendering ---
-  if (appStatus !== 'READY' || !user || !players) {
-    // Render loading/login/setup screens
-    if (appStatus === 'LOADING_AUTH') return <LoadingScreen message="Verificando autenticação" />;
-    if (appStatus === 'LOGIN') return <LoginScreen onLogin={handleLogin} error={authError} />;
-    if (appStatus === 'LOADING_DATA') {
-      return <LoadingScreen message="Carregando dados" footer={<AppFooter />} />;
+  const renderContent = () => {
+    if (appStatus !== 'READY' || !user || !players) {
+      if (appStatus === 'LOADING_AUTH') return <LoadingScreen message="Verificando autenticação" />;
+      if (appStatus === 'LOGIN') return <LoginScreen onLogin={handleLogin} error={authError} />;
+      if (appStatus === 'LOADING_DATA') {
+        return <LoadingScreen message="Carregando dados" footer={<AppFooter />} />;
+      }
+      if (appStatus === 'WAITING_FOR_SETUP') {
+        return <LoadingScreen message="Aguardando configuração inicial pelo administrador..." footer={<AppFooter />} />;
+      }
+      if (appStatus === 'SETUP_PLAYERS' && isAllowed) {
+        return (
+          <>
+            <Suspense fallback={<LoadingScreen message="Carregando configuração" />}>
+              <PlayerSetupModal onSetupComplete={handlePlayerSetup} />
+            </Suspense>
+            <div className="fixed bottom-0 left-0 right-0 z-[60]">
+              <AppFooter variant="overlay" />
+            </div>
+          </>
+        );
+      }
+      return <LoadingScreen message="Inicializando" footer={<AppFooter />} />;
     }
-    if (appStatus === 'SETUP_PLAYERS' && isAllowed) {
-      return (
-        <>
-          <Suspense fallback={<LoadingScreen message="Carregando configuração" />}>
-            <PlayerSetupModal onSetupComplete={handlePlayerSetup} />
-          </Suspense>
-          <div className="fixed bottom-0 left-0 right-0 z-[60]">
-            <AppFooter variant="overlay" />
-          </div>
-        </>
-      );
-    }
-    return <LoadingScreen message="Inicializando" footer={<AppFooter />} />;
-  }
 
-  return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans flex flex-col transition-colors duration-300">
-      <Toaster position="bottom-center" richColors theme={isDarkMode ? 'dark' : 'light'} />
-      <AnimatePresence>
-        {showPlayerManager && isAllowed && (
-          <Suspense fallback={null}>
-            <PlayerManagerModal
-              players={players}
-              scores={scores}
-              onSetupComplete={handlePlayerSetup}
-              onClose={() => setShowPlayerManager(false)}
-            />
-          </Suspense>
-        )}
-      </AnimatePresence>
+    return (
+      <>
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <header className="flex justify-between items-center mb-8">
@@ -348,6 +338,26 @@ export default function App() {
       </div>
       </div>
       <AppFooter />
+      </>
+    );
+  };
+
+  return (
+    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen font-sans flex flex-col transition-colors duration-300">
+      <Toaster position="bottom-center" richColors theme={isDarkMode ? 'dark' : 'light'} />
+      <AnimatePresence>
+        {showPlayerManager && isAllowed && appStatus === 'READY' && (
+          <Suspense fallback={null}>
+            <PlayerManagerModal
+              players={players}
+              scores={scores}
+              onSetupComplete={handlePlayerSetup}
+              onClose={() => setShowPlayerManager(false)}
+            />
+          </Suspense>
+        )}
+      </AnimatePresence>
+      {renderContent()}
     </div>
   );
 }

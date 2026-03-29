@@ -6,7 +6,7 @@ import { useAuth } from '../../src/hooks/useAuth';
 import { useGameData } from '../../src/hooks/useGameData';
 
 jest.mock('sonner', () => ({
-  Toaster: () => null,
+  Toaster: () => <div data-testid="global-toaster" />,
   toast: {
     success: jest.fn(),
     error: jest.fn(),
@@ -120,6 +120,29 @@ describe('App', () => {
     }));
     render(<App />);
     expect(screen.getByText(/Carregando dados/i)).toBeInTheDocument();
+  });
+
+  test('mounts global Toaster so notifications work during loading states', () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/u.png', displayName: 'U' },
+      appStatus: 'LOADING_DATA',
+    }));
+    render(<App />);
+    expect(screen.getByTestId('global-toaster')).toBeInTheDocument();
+  });
+
+  test('shows waiting message when admin has not configured players (non-admin)', () => {
+    useAuth.mockImplementation(() => ({
+      ...defaultAuth(),
+      user: { photoURL: 'https://example.com/guest.png', displayName: 'Guest' },
+      isAllowed: false,
+      appStatus: 'WAITING_FOR_SETUP',
+    }));
+    render(<App />);
+    expect(
+      screen.getByText(/Aguardando configuração inicial pelo administrador/i)
+    ).toBeInTheDocument();
   });
 
   test('shows player setup for allowed users when config doc is missing', async () => {
