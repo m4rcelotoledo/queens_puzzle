@@ -319,8 +319,7 @@ describe('PlayerManagerModal', () => {
       />
     );
 
-    const buttons = screen.getAllByRole('button');
-    const headerClose = buttons[0];
+    const headerClose = screen.getByRole('button', { name: /close/i });
     fireEvent.click(headerClose);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
