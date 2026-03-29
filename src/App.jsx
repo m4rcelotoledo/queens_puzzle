@@ -39,10 +39,11 @@ export default function App() {
   const [appStatus, setAppStatus] = useState('LOADING_AUTH'); // LOADING_AUTH, LOGIN, LOADING_DATA, SETUP_PLAYERS, READY
   const [players, setPlayers] = useState(null);
   const [scores, setScores] = useState({});
+  const [isDarkMode, setIsDarkMode] = useTheme();
+
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [view, setView] = useState('daily');
   const [times, setTimes] = useState({});
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true');
 
   const [currentView, setCurrentView] = useState('scoreboard');
   const [selectedPlayer, setSelectedPlayer] = useState(null);
@@ -51,17 +52,6 @@ export default function App() {
   const firebaseAppRef = useRef(null);
 
   const appId = 'queens-puzzle';
-
-  // Dark Mode Effect
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
-    }
-  }, [isDarkMode]);
 
   // Startup Effect (runs only once)
   useEffect(() => {

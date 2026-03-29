@@ -14,6 +14,17 @@
     <link rel="preconnect" href="https://queens-puzzle-80a1e.firebaseapp.com" />
     <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
     <title>Placar - Puzzle das Rainhas</title>
+    <!-- Dark Mode FOUC Prevention Script -->
+    <script>
+      try {
+        if (localStorage.getItem('darkMode') === 'true' ||
+           (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
