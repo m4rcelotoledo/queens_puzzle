@@ -33,9 +33,7 @@ export default function App() {
   const { db, auth, user, authError, isAllowed, appStatus, setAppStatus, handleLogin, handleLogout, firebaseAppRef } = useAuth();
 
   // --- States of Logic and Data ---
-  const [appStatus, setAppStatus] = useState('LOADING_AUTH'); // LOADING_AUTH, LOGIN, LOADING_DATA, SETUP_PLAYERS, READY
-  const [players, setPlayers] = useState(null);
-  const [scores, setScores] = useState({});
+  const { players, setPlayers, scores, setScores } = useGameData(db, appStatus, setAppStatus, isAllowed);
   const [isDarkMode, setIsDarkMode] = useTheme();
 
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -47,44 +45,6 @@ export default function App() {
   const [showPlayerManager, setShowPlayerManager] = useState(false);
 
   const appId = 'queens-puzzle';
-
-
-  // Effect for Loading Data (only runs when the status changes to LOADING_DATA)
-  useEffect(() => {
-    if (appStatus !== 'LOADING_DATA' || !db) return;
-
-    // Listener for players
-    const playersDocRef = doc(db, `artifacts/${appId}/config`, 'players');
-    const unsubPlayers = onSnapshot(playersDocRef, (doc) => {
-      if (doc.exists()) {
-        const playerNames = doc.data().names;
-        setPlayers(playerNames);
-        setAppStatus('READY');
-      } else {
-        // Only admins can configure players
-        if (isAllowed) {
-            setAppStatus('SETUP_PLAYERS');
-        }
-      }
-    }, (error) => {
-      console.error("Error fetching players:", error);
-      setNotification({ message: 'Erro ao carregar dados dos jogadores.', type: 'error' });
-      setAppStatus('LOGIN');
-    });
-
-    // Listener for scores
-    const scoresQuery = query(collection(db, `artifacts/${appId}/public/data/scores`));
-    const unsubScores = onSnapshot(scoresQuery, (snapshot) => {
-      const newScores = {};
-      snapshot.forEach((doc) => { newScores[doc.id] = doc.data(); });
-      setScores(newScores);
-    });
-
-    return () => {
-      unsubPlayers();
-      unsubScores();
-    };
-  }, [appStatus, db, isAllowed]);
 
   const playerStats = useMemo(() => calculatePlayerStats(selectedPlayer, scores), [selectedPlayer, scores]);
 
