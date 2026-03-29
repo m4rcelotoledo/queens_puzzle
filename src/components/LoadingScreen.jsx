@@ -1,17 +1,15 @@
 import React from 'react';
+import AppBranding from './AppBranding';
 
-const LoadingScreen = ({ message, footer }) => (
+const LoadingScreen = ({ message, footer, showBranding = true }) => (
   <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col transition-colors duration-300">
     <div className="flex-1 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-center mb-8">
-          <div className="text-left">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-gray-100">
-              🏆 Placar do Puzzle 👑
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Acompanhe os mestres do tabuleiro!</p>
-          </div>
-        </header>
+        {showBranding && (
+          <header className="flex justify-between items-center mb-8">
+            <AppBranding />
+          </header>
+        )}
 
         <div className="flex flex-col items-center justify-center mt-24 text-gray-500 dark:text-gray-400 font-medium text-lg">
           <svg className="animate-spin h-10 w-10 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
