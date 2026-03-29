@@ -21,7 +21,9 @@ export function useGameData(db, appStatus, setAppStatus, isAllowed) {
       } else {
         // Only admins can configure players
         if (isAllowed) {
-            setAppStatus('SETUP_PLAYERS');
+          setAppStatus('SETUP_PLAYERS');
+        } else {
+          setAppStatus('WAITING_FOR_SETUP');
         }
       }
     }, (error) => {
@@ -36,6 +38,9 @@ export function useGameData(db, appStatus, setAppStatus, isAllowed) {
       const newScores = {};
       snapshot.forEach((docSnap) => { newScores[docSnap.id] = docSnap.data(); });
       setScores(newScores);
+    }, (error) => {
+      console.error("Error fetching scores:", error);
+      toast.error('Erro ao carregar os placares do servidor.');
     });
 
     return () => {

@@ -71,7 +71,7 @@ describe('useGameData', () => {
     });
   });
 
-  test('does not change status when doc is missing and user is not allowed', async () => {
+  test('sets WAITING_FOR_SETUP when doc is missing and user is not allowed', async () => {
     let playersOnNext;
     mockOnSnapshot.mockImplementation((refOrQuery, onNext) => {
       if (!playersOnNext) {
@@ -94,6 +94,9 @@ describe('useGameData', () => {
       });
     });
 
+    await waitFor(() => {
+      expect(setAppStatus).toHaveBeenCalledWith('WAITING_FOR_SETUP');
+    });
     expect(setAppStatus).not.toHaveBeenCalledWith('SETUP_PLAYERS');
   });
 
@@ -189,5 +192,35 @@ describe('useGameData', () => {
         results: [],
       });
     });
+  });
+
+  test('on scores snapshot error shows toast without forcing LOGIN', async () => {
+    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let call = 0;
+    let scoresOnError;
+    mockOnSnapshot.mockImplementation((refOrQuery, onNext, onError) => {
+      call += 1;
+      if (call === 1) {
+        return jest.fn();
+      }
+      scoresOnError = onError;
+      return jest.fn();
+    });
+
+    renderHook(() => useGameData(db, 'LOADING_DATA', setAppStatus, true));
+
+    await waitFor(() => {
+      expect(scoresOnError).toBeDefined();
+    });
+
+    await act(async () => {
+      scoresOnError(new Error('network'));
+    });
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Erro ao carregar os placares do servidor.');
+    });
+    expect(setAppStatus).not.toHaveBeenCalledWith('LOGIN');
+    errSpy.mockRestore();
   });
 });
