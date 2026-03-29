@@ -310,6 +310,22 @@ describe('PlayerManagerModal', () => {
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onClose when the header close control is clicked', () => {
+    render(
+      <PlayerManagerModal
+        players={defaultPlayers}
+        onSetupComplete={mockOnSetupComplete}
+        onClose={mockOnClose}
+      />
+    );
+
+    const buttons = screen.getAllByRole('button');
+    const headerClose = buttons[0];
+    fireEvent.click(headerClose);
+
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
   it('calls onSetupComplete when save is clicked', async () => {
     render(
       <PlayerManagerModal

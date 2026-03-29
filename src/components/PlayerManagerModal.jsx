@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { m as motion, AnimatePresence } from 'framer-motion';
+import { z } from 'zod';
+
+const playerNameSchema = z.string()
+  .trim()
+  .min(1, 'Name cannot be empty')
+  .min(2, 'Name must have at least 2 characters')
+  .max(20, 'Name must have at most 20 characters');
 
 const PlayerManagerModal = ({ players, onSetupComplete, onClose, scores = {} }) => {
   const [playerNames, setPlayerNames] = useState([]);
@@ -20,21 +27,15 @@ const PlayerManagerModal = ({ players, onSetupComplete, onClose, scores = {} }) 
 
   // Name validation
   const validatePlayerName = (name, index = null) => {
-    if (!name.trim()) {
-      return 'Name cannot be empty';
-    }
-
-    if (name.trim().length < 2) {
-      return 'Name must have at least 2 characters';
-    }
-
-    if (name.trim().length > 20) {
-      return 'Name must have at most 20 characters';
+    const result = playerNameSchema.safeParse(name);
+    if (!result.success) {
+      return result.error.issues[0].message;
     }
 
     // Check for duplicates (ignore own index if editing)
+    const normalizedName = name.trim().toLowerCase();
     const duplicateIndex = playerNames.findIndex((p, i) =>
-      p.trim().toLowerCase() === name.trim().toLowerCase() && i !== index
+      p.trim().toLowerCase() === normalizedName && i !== index
     );
 
     if (duplicateIndex !== -1) {
