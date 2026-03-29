@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, getIdTokenResult } from 'firebase/auth';
+import { toast } from 'sonner';
 import { getFirestore } from 'firebase/firestore';
 import { scheduleIdleTask } from '../utils/scheduleIdleTask';
 
@@ -24,7 +25,7 @@ export function useAuth() {
         appId: import.meta.env.VITE_FIREBASE_APP_ID,
         measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
     };
-    const app = initializeApp(firebaseConfig);
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
     firebaseAppRef.current = app;
     const firestoreDb = getFirestore(app);
     const firebaseAuth = getAuth(app);
@@ -44,11 +45,19 @@ export function useAuth() {
 
     const unsubscribe = onAuthStateChanged(firebaseAuth, async (currentUser) => {
       if (currentUser) {
-        // Force token refresh to get the latest Custom Claim
-        const tokenResult = await getIdTokenResult(currentUser, true);
-        setUser(currentUser);
-        setIsAllowed(tokenResult.claims.isAllowed === true);
-        setAppStatus('LOADING_DATA');
+        try {
+          // Force token refresh to get the latest Custom Claim
+          const tokenResult = await getIdTokenResult(currentUser, true);
+          setUser(currentUser);
+          setIsAllowed(tokenResult.claims.isAllowed === true);
+          setAppStatus('LOADING_DATA');
+        } catch (error) {
+          console.error("Token refresh failed:", error);
+          toast.error("Erro de sincronização. Por favor refaça o login.");
+          setUser(null);
+          setIsAllowed(false);
+          setAppStatus('LOGIN');
+        }
       } else {
         setUser(null);
         setIsAllowed(false);
