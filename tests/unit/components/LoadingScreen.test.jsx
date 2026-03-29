@@ -34,7 +34,7 @@ describe('LoadingScreen', () => {
     const inner = screen.getByText('...');
     const outer = inner.closest('.min-h-screen');
     expect(outer).toHaveClass('min-h-screen', 'bg-gray-100', 'dark:bg-gray-900', 'flex', 'flex-col');
-    
+
     const centerContainer = inner.parentElement;
     expect(centerContainer).toHaveClass('flex', 'flex-col', 'items-center', 'justify-center');
     expect(inner).toHaveClass('animate-pulse');
@@ -86,5 +86,12 @@ describe('LoadingScreen', () => {
 
     expect(screen.getByTestId('footer-slot')).toBeInTheDocument();
     expect(screen.getByText('Footer')).toBeInTheDocument();
+  });
+
+  it('hides branding header when showBranding is false', () => {
+    render(<LoadingScreen message="Carregando" showBranding={false} />);
+
+    expect(screen.queryByRole('heading', { level: 1 })).not.toBeInTheDocument();
+    expect(screen.getByText('Carregando...')).toBeInTheDocument();
   });
 });

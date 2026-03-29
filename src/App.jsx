@@ -4,6 +4,7 @@ import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signO
 import { getFirestore, doc, setDoc, onSnapshot, collection, query } from 'firebase/firestore';
 import { m as motion, AnimatePresence } from 'framer-motion';
 
+import AppBranding from './components/AppBranding';
 import DarkModeToggle from './components/DarkModeToggle';
 import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
@@ -333,12 +334,7 @@ export default function App() {
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         <header className="flex justify-between items-center mb-8">
-          <div className="text-left">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-800 dark:text-gray-100">
-              🏆 Placar do Puzzle 👑
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">Acompanhe os mestres do tabuleiro!</p>
-          </div>
+          <AppBranding />
           <div className="flex items-center space-x-4">
             <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
             <div className="flex items-center space-x-2">
