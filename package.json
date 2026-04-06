@@ -45,7 +45,7 @@
     "jest-junit": "^16.0.0",
     "postcss": "^8.4.38",
     "tailwindcss": "^4.1.17",
-    "vite": "^7.1.11",
+    "vite": "^7.3.2",
     "vite-plugin-pwa": "^1.2.0"
   },
   "overrides": {
