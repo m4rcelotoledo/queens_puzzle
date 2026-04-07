@@ -1,20 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
+
+function subscribe(query, onStoreChange) {
+  if (typeof window === 'undefined') return () => {};
+  const mq = window.matchMedia(query);
+  mq.addEventListener('change', onStoreChange);
+  return () => mq.removeEventListener('change', onStoreChange);
+}
+
+function getSnapshot(query) {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia(query).matches;
+}
 
 /**
- * Subscribes to a CSS media query. SSR-safe (false until mounted).
+ * Subscribes to a CSS media query.
+ * Uses useSyncExternalStore: server snapshot is always false; client reads matchMedia and listens for changes.
  */
 export function useMediaQuery(query) {
-  const [matches, setMatches] = useState(() =>
-    typeof window !== 'undefined' ? window.matchMedia(query).matches : false
+  return useSyncExternalStore(
+    (onStoreChange) => subscribe(query, onStoreChange),
+    () => getSnapshot(query),
+    () => false
   );
-
-  useEffect(() => {
-    const mq = window.matchMedia(query);
-    const onChange = () => setMatches(mq.matches);
-    onChange();
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, [query]);
-
-  return matches;
 }
