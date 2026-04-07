@@ -40,20 +40,54 @@ const localStorageMock = {
 };
 global.localStorage = localStorageMock;
 
-// matchMedia mock
+// matchMedia mock — width-aware for (min-width: 768px) / (max-width: 767px); prefers-color-scheme stays false
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
+  value: jest.fn().mockImplementation((query) => {
+    const width = typeof window.innerWidth === 'number' ? window.innerWidth : 1024;
+    return {
+      get matches() {
+        if (query.includes('(min-width: 768px)')) return width >= 768;
+        if (query.includes('(max-width: 767px)')) return width <= 767;
+        if (query.includes('prefers-color-scheme')) return false;
+        return false;
+      },
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    };
+  }),
 });
+
+// JSDOM may omit ResizeObserver; tests and AppHeader rely on a minimal implementation
+if (typeof global.ResizeObserver === 'undefined') {
+  global.ResizeObserver = class ResizeObserver {
+    constructor(callback) {
+      this.callback = callback;
+    }
+
+    observe(element) {
+      queueMicrotask(() => {
+        const w =
+          element?.offsetWidth ||
+          element?.getBoundingClientRect?.()?.width ||
+          0;
+        const fallback =
+          typeof window !== 'undefined' && window.innerWidth > 0 ? window.innerWidth : 480;
+        const width = w > 0 ? w : fallback;
+        this.callback([{ contentRect: { width, height: 40 } }], this);
+      });
+    }
+
+    unobserve() {}
+
+    disconnect() {}
+  };
+}
 
 // Environment variables mock
 process.env.VITE_FIREBASE_API_KEY = 'test-api-key';
