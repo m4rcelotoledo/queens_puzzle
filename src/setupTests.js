@@ -44,9 +44,9 @@ global.localStorage = localStorageMock;
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: jest.fn().mockImplementation((query) => {
-    const width = typeof window.innerWidth === 'number' ? window.innerWidth : 1024;
     return {
       get matches() {
+        const width = typeof window.innerWidth === 'number' ? window.innerWidth : 1024;
         if (query.includes('(min-width: 768px)')) return width >= 768;
         if (query.includes('(max-width: 767px)')) return width <= 767;
         if (query.includes('prefers-color-scheme')) return false;
