@@ -4,8 +4,7 @@ import { m as motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
 import confetti from 'canvas-confetti';
 
-import AppBranding from './components/AppBranding';
-import DarkModeToggle from './components/DarkModeToggle';
+import AppHeader from './components/AppHeader';
 import LoadingScreen from './components/LoadingScreen';
 import LoginScreen from './components/LoginScreen';
 import PodiumIcon from './components/PodiumIcon';
@@ -204,16 +203,12 @@ export default function App() {
       <>
       <div className="flex-1 p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
-        <header className="flex justify-between items-center mb-8">
-          <AppBranding />
-          <div className="flex items-center space-x-4">
-            <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
-            <div className="flex items-center space-x-2">
-              <img src={user?.photoURL} alt={user?.displayName || 'Avatar'} referrerPolicy="no-referrer" className="w-10 h-10 rounded-full bg-gray-200" />
-              <button onClick={handleLogout} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Sair</button>
-            </div>
-          </div>
-        </header>
+        <AppHeader
+          user={user}
+          isDarkMode={isDarkMode}
+          setIsDarkMode={setIsDarkMode}
+          onLogout={handleLogout}
+        />
 
         <main>
           <AnimatePresence mode="wait">
