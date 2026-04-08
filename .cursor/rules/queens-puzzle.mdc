@@ -20,7 +20,7 @@ alwaysApply: true
 
 ## Testes
 
-- Jest + RTL; setup em `src/setupTests.js`. Alterar ranking ⇒ atualizar **`tests/unit/utils/calculations.test.js`** (e fluxo em testes de App se necessário). Manter cobertura global (thresholds em `jest.config.cjs`).
+- Vitest + jsdom + RTL; setup em `src/setupVitest.js`. Testes colocados junto ao código: **`src/**/*.test.{js,jsx}`**. Alterar ranking ⇒ atualizar **`src/utils/calculations.test.js`** (e fluxo em **`src/App.test.jsx`** se necessário). Manter cobertura global (thresholds em `vite.config.js` → `test.coverage`).
 
 ## Escopo de mudanças
 
