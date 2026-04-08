@@ -3,43 +3,44 @@
  */
 import React from 'react';
 
-const mockRender = jest.fn();
+const mockRender = vi.fn();
 
-jest.mock('react-dom/client', () => ({
-  createRoot: jest.fn((container) => ({
-    render: (node) => mockRender(node, container),
-  })),
+vi.mock('react-dom/client', () => ({
+  default: {
+    createRoot: vi.fn((container) => ({
+      render: (node) => mockRender(node, container),
+    })),
+  },
 }));
 
-jest.mock('../../src/App.jsx', () => ({
+vi.mock('./App.jsx', () => ({
   __esModule: true,
   default: function MockApp() {
     return <div data-testid="mock-app">MockApp</div>;
   },
 }));
 
-jest.mock('framer-motion', () => ({
-  LazyMotion: function MockLazyMotion({ children }) { return children; },
-  domAnimation: {}
+vi.mock('framer-motion', () => ({
+  LazyMotion: function MockLazyMotion({ children }) {
+    return children;
+  },
+  domAnimation: {},
 }));
 
 describe('main.jsx', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     document.body.innerHTML = '<div id="root"></div>';
-    jest.resetModules();
+    vi.resetModules();
     mockRender.mockClear();
-    const { createRoot } = require('react-dom/client');
-    createRoot.mockClear();
+    const ReactDOM = await import('react-dom/client');
+    ReactDOM.default.createRoot.mockClear();
   });
 
-  it('creates root on #root and renders App inside StrictMode', () => {
-    let AppComponent;
-    jest.isolateModules(() => {
-      AppComponent = require('../../src/App.jsx').default;
-      require('../../src/main.jsx');
-    });
-
-    const { createRoot } = require('react-dom/client');
+  it('creates root on #root and renders App inside StrictMode', async () => {
+    await import('./main.jsx');
+    const ReactDOM = await import('react-dom/client');
+    const { createRoot } = ReactDOM.default;
+    const { default: AppComponent } = await import('./App.jsx');
     const rootEl = document.getElementById('root');
 
     expect(createRoot).toHaveBeenCalledTimes(1);
