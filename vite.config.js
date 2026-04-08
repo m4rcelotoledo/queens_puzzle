@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { readFileSync } from 'node:fs'
@@ -7,11 +7,34 @@ import { dirname, resolve } from 'node:path'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(resolve(__dirname, 'package.json'), 'utf-8'))
+/** In Vitest, fixed `import.meta.env` for stable assertions (e.g. AppFooter). */
+const viteAppVersion =
+  process.env.VITEST === 'true' || process.env.VITEST === '1' ? '0.0.0-test' : pkg.version
+
+const stubCssInTests =
+  process.env.VITEST === 'true'
+    ? [
+        {
+          name: 'vitest-stub-css',
+          enforce: 'pre',
+          load(id) {
+            if (id.endsWith('.css')) {
+              return 'export default {}'
+            }
+          },
+        },
+      ]
+    : []
 
 // https://vitejs.dev/config/
 export default defineConfig({
   define: {
-    'import.meta.env.VITE_APP_VERSION': JSON.stringify(pkg.version),
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(viteAppVersion),
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
   },
   build: {
     // Fewer legacy polyfills in the bundle; targets evergreen browsers
@@ -21,15 +44,15 @@ export default defineConfig({
         // Split heavy vendors so no single chunk exceeds the default warning threshold;
         // total download size is similar, but caching and parallel loading improve.
         manualChunks(id) {
-          if (!id.includes('node_modules')) return;
-          if (id.includes('firebase')) return 'vendor-firebase';
-          if (id.includes('framer-motion')) return 'vendor-framer-motion';
+          if (!id.includes('node_modules')) return
+          if (id.includes('firebase')) return 'vendor-firebase'
+          if (id.includes('framer-motion')) return 'vendor-framer-motion'
           if (
             id.includes('/react/') ||
             id.includes('react-dom') ||
             id.includes('node_modules/scheduler')
           ) {
-            return 'vendor-react';
+            return 'vendor-react'
           }
         },
       },
@@ -37,6 +60,7 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    ...stubCssInTests,
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
@@ -103,4 +127,42 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/setupVitest.js'],
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    css: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html', 'lcov'],
+      reportsDirectory: './coverage',
+      all: true,
+      include: [
+        'src/components/**/*.{js,jsx}',
+        'src/utils/**/*.{js,jsx}',
+        'src/main.jsx',
+      ],
+      exclude: [
+        'node_modules/',
+        '**/*.test.{js,jsx}',
+        '**/*.spec.{js,jsx}',
+        'src/setupVitest.js',
+        'src/index.css',
+        '**/*.config.{js,jsx}',
+        'src/components/LoadingScreen.jsx',
+        'src/components/LoginScreen.jsx',
+      ],
+      thresholds: {
+        lines: 95,
+        statements: 95,
+        functions: 95,
+      },
+    },
+    reporters: [
+      'default',
+      ['junit', { outputFile: './coverage/junit.xml' }],
+    ],
+    pool: 'forks',
+  },
 })
