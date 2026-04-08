@@ -1,13 +1,13 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import LoginScreen from '../../../src/components/LoginScreen';
+import LoginScreen from './LoginScreen';
 
 describe('LoginScreen', () => {
-  const mockOnLogin = jest.fn();
+  const mockOnLogin = vi.fn();
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders correctly', () => {
