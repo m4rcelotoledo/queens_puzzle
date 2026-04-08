@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import AppHeader, { MOBILE_STACKED_BREAKPOINT_PX } from '../../../src/components/AppHeader';
+import AppHeader, { MOBILE_STACKED_BREAKPOINT_PX } from './AppHeader';
 
 const user = {
   photoURL: 'https://example.com/a.png',
@@ -12,12 +12,12 @@ describe('AppHeader', () => {
   const defaultProps = {
     user,
     isDarkMode: false,
-    setIsDarkMode: jest.fn(),
-    onLogout: jest.fn(),
+    setIsDarkMode: vi.fn(),
+    onLogout: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     window.innerWidth = 1024;
   });
 
