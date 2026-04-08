@@ -2,30 +2,30 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import * as firebaseApp from 'firebase/app';
 import * as firebaseAuth from 'firebase/auth';
 import { toast } from 'sonner';
-import { useAuth } from '../../../src/hooks/useAuth';
+import { useAuth } from './useAuth';
 
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   toast: {
-    error: jest.fn(),
+    error: vi.fn(),
   },
 }));
 
-jest.mock('../../../src/utils/scheduleIdleTask', () => ({
+vi.mock('../utils/scheduleIdleTask', () => ({
   scheduleIdleTask: (fn) => fn(),
 }));
 
-jest.mock('firebase/analytics', () => ({
-  getAnalytics: jest.fn(),
-  isSupported: jest.fn(() => Promise.resolve(false)),
+vi.mock('firebase/analytics', () => ({
+  getAnalytics: vi.fn(),
+  isSupported: vi.fn(() => Promise.resolve(false)),
 }));
 
 describe('useAuth', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     firebaseApp.getApps.mockReturnValue([]);
     firebaseAuth.onAuthStateChanged.mockImplementation((_auth, callback) => {
       queueMicrotask(() => callback(null));
-      return jest.fn();
+      return vi.fn();
     });
     firebaseAuth.getIdTokenResult.mockResolvedValue({ claims: { isAllowed: false } });
   });
@@ -43,11 +43,11 @@ describe('useAuth', () => {
   });
 
   test('sets user and LOADING_DATA when signed in', async () => {
-    const mockUser = { uid: 'u1', getIdToken: jest.fn() };
+    const mockUser = { uid: 'u1', getIdToken: vi.fn() };
     firebaseAuth.getIdTokenResult.mockResolvedValue({ claims: { isAllowed: true } });
     firebaseAuth.onAuthStateChanged.mockImplementation((_auth, callback) => {
       queueMicrotask(() => callback(mockUser));
-      return jest.fn();
+      return vi.fn();
     });
 
     const { result } = renderHook(() => useAuth());
@@ -62,7 +62,7 @@ describe('useAuth', () => {
   test('uses getApp when Firebase app already exists (Strict Mode / HMR safe)', () => {
     firebaseApp.getApps.mockReturnValue([{ name: '[DEFAULT]' }]);
     firebaseApp.getApp.mockReturnValue({ name: 'reused' });
-    firebaseAuth.onAuthStateChanged.mockImplementation(() => jest.fn());
+    firebaseAuth.onAuthStateChanged.mockImplementation(() => vi.fn());
 
     renderHook(() => useAuth());
 
@@ -71,12 +71,12 @@ describe('useAuth', () => {
   });
 
   test('on token refresh failure shows toast and returns to LOGIN', async () => {
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const mockUser = { uid: 'u1' };
     firebaseAuth.getIdTokenResult.mockRejectedValueOnce(new Error('network'));
     firebaseAuth.onAuthStateChanged.mockImplementation((_auth, callback) => {
       queueMicrotask(() => callback(mockUser));
-      return jest.fn();
+      return vi.fn();
     });
 
     const { result } = renderHook(() => useAuth());
@@ -90,8 +90,8 @@ describe('useAuth', () => {
   });
 
   test('handleLogin sets auth error on unauthorized-domain', async () => {
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    firebaseAuth.onAuthStateChanged.mockImplementation(() => jest.fn());
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    firebaseAuth.onAuthStateChanged.mockImplementation(() => vi.fn());
     const { result } = renderHook(() => useAuth());
 
     await waitFor(() => {
@@ -112,8 +112,8 @@ describe('useAuth', () => {
   });
 
   test('handleLogin sets generic auth error on other failures', async () => {
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    firebaseAuth.onAuthStateChanged.mockImplementation(() => jest.fn());
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    firebaseAuth.onAuthStateChanged.mockImplementation(() => vi.fn());
     const { result } = renderHook(() => useAuth());
 
     await waitFor(() => {
@@ -131,7 +131,7 @@ describe('useAuth', () => {
   });
 
   test('handleLogout calls signOut when auth exists', async () => {
-    firebaseAuth.onAuthStateChanged.mockImplementation(() => jest.fn());
+    firebaseAuth.onAuthStateChanged.mockImplementation(() => vi.fn());
     const { result } = renderHook(() => useAuth());
 
     await waitFor(() => {
