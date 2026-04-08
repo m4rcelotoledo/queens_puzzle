@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useMediaQuery } from '../../../src/hooks/useMediaQuery';
+import { useMediaQuery } from './useMediaQuery';
 
 describe('useMediaQuery', () => {
   test('returns true for min-width 768px when window is wide', () => {
@@ -18,18 +18,18 @@ describe('useMediaQuery', () => {
   test('updates when the media query listener fires', () => {
     let changeHandler;
     const original = window.matchMedia;
-    window.matchMedia = jest.fn().mockImplementation((query) => ({
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
       get matches() {
         return query === '(min-width: 768px)' ? window.innerWidth >= 768 : false;
       },
       media: query,
-      addEventListener: jest.fn((_, cb) => {
+      addEventListener: vi.fn((_, cb) => {
         changeHandler = cb;
       }),
-      removeEventListener: jest.fn(),
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      dispatchEvent: jest.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
     }));
 
     window.innerWidth = 1024;
