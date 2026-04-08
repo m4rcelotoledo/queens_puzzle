@@ -2,10 +2,10 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import PlayerManagerModal from '../../../src/components/PlayerManagerModal';
+import PlayerManagerModal from './PlayerManagerModal';
 
 // Mock do framer-motion
-jest.mock('framer-motion', () => ({
+vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }) => <div {...props}>{children}</div>,
   },
@@ -17,12 +17,12 @@ jest.mock('framer-motion', () => ({
 }));
 
 describe('PlayerManagerModal', () => {
-  const mockOnSetupComplete = jest.fn();
-  const mockOnClose = jest.fn();
+  const mockOnSetupComplete = vi.fn();
+  const mockOnClose = vi.fn();
   const defaultPlayers = ['Marcelo', 'James', 'Maria'];
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it('renders correctly with existing players', () => {
@@ -573,9 +573,9 @@ describe('PlayerManagerModal', () => {
   it('tests error when saving players', async () => {
     // Mock console.error to prevent it from appearing in test output
     const originalConsoleError = console.error;
-    console.error = jest.fn();
+    console.error = vi.fn();
 
-    const mockOnSetupCompleteWithError = jest.fn().mockRejectedValue(new Error('Test error'));
+    const mockOnSetupCompleteWithError = vi.fn().mockRejectedValue(new Error('Test error'));
 
     render(
       <PlayerManagerModal
@@ -624,7 +624,7 @@ describe('PlayerManagerModal', () => {
   });
 
   it('tests submission state', async () => {
-    const mockOnSetupCompleteAsync = jest.fn().mockImplementation(() =>
+    const mockOnSetupCompleteAsync = vi.fn().mockImplementation(() =>
       new Promise(resolve => setTimeout(resolve, 100))
     );
 
