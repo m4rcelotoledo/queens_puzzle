@@ -1,31 +1,30 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import App from '../../src/App.jsx';
-import { useAuth } from '../../src/hooks/useAuth';
-import { useGameData } from '../../src/hooks/useGameData';
+import App from './App.jsx';
+import { useAuth } from './hooks/useAuth';
+import { useGameData } from './hooks/useGameData';
 
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   Toaster: () => <div data-testid="global-toaster" />,
   toast: {
-    success: jest.fn(),
-    error: jest.fn(),
-    warning: jest.fn(),
+    success: vi.fn(),
+    error: vi.fn(),
+    warning: vi.fn(),
   },
 }));
 
-jest.mock('canvas-confetti', () => jest.fn());
+vi.mock('canvas-confetti', () => ({ default: vi.fn() }));
 
-jest.mock('../../src/utils/sfx', () => ({
-  playSuccessSound: jest.fn(),
+vi.mock('./utils/sfx', () => ({
+  playSuccessSound: vi.fn(),
 }));
 
-jest.mock('../../src/utils/scheduleIdleTask', () => ({
+vi.mock('./utils/scheduleIdleTask', () => ({
   scheduleIdleTask: (fn) => fn(),
 }));
 
-jest.mock('framer-motion', () => {
-  const React = require('react');
+vi.mock('framer-motion', () => {
   // Strip motion-only props so React does not forward them to DOM nodes
   const Passthrough = ({
     children,
@@ -50,27 +49,27 @@ jest.mock('framer-motion', () => {
   };
 });
 
-jest.mock('../../src/hooks/useAuth', () => ({
-  useAuth: jest.fn(),
+vi.mock('./hooks/useAuth', () => ({
+  useAuth: vi.fn(),
 }));
 
-jest.mock('../../src/hooks/useGameData', () => ({
-  useGameData: jest.fn(),
+vi.mock('./hooks/useGameData', () => ({
+  useGameData: vi.fn(),
 }));
 
-jest.mock('../../src/hooks/useTheme', () => {
-  const setIsDarkMode = jest.fn();
+vi.mock('./hooks/useTheme', () => {
+  const setIsDarkMode = vi.fn();
   return {
-    useTheme: jest.fn(() => [false, setIsDarkMode]),
+    useTheme: vi.fn(() => [false, setIsDarkMode]),
   };
 });
 
-const setAppStatus = jest.fn();
+const setAppStatus = vi.fn();
 const gameData = {
   players: null,
-  setPlayers: jest.fn(),
+  setPlayers: vi.fn(),
   scores: {},
-  setScores: jest.fn(),
+  setScores: vi.fn(),
 };
 
 const defaultAuth = () => ({
@@ -81,19 +80,19 @@ const defaultAuth = () => ({
   isAllowed: false,
   appStatus: 'LOGIN',
   setAppStatus,
-  handleLogin: jest.fn(),
-  handleLogout: jest.fn(),
+  handleLogin: vi.fn(),
+  handleLogout: vi.fn(),
   firebaseAppRef: { current: {} },
 });
 
 describe('App', () => {
   beforeEach(() => {
     localStorage.clear();
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     gameData.players = null;
     gameData.scores = {};
-    gameData.setPlayers = jest.fn();
-    gameData.setScores = jest.fn();
+    gameData.setPlayers = vi.fn();
+    gameData.setScores = vi.fn();
     useAuth.mockImplementation(defaultAuth);
     useGameData.mockImplementation(() => gameData);
   });
@@ -189,7 +188,7 @@ describe('App', () => {
   });
 
   test('calls handleLogout when Sair is clicked', () => {
-    const handleLogout = jest.fn();
+    const handleLogout = vi.fn();
     useAuth.mockImplementation(() => ({
       ...defaultAuth(),
       user: { photoURL: 'https://example.com/b.png', displayName: 'Bob' },
