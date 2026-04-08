@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import PodiumIcon from '../../../src/components/PodiumIcon';
+import PodiumIcon from './PodiumIcon';
 
 describe('PodiumIcon', () => {
   it.each([
