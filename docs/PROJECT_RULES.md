@@ -100,19 +100,19 @@ Critérios, **nesta ordem**:
 
 ### 4.1 Ferramentas
 
-- **Jest** + **jsdom**; **React Testing Library** + **@testing-library/user-event**.
-- Setup global: `src/setupTests.js` — mocks de Firebase, `localStorage`, `matchMedia`, `import.meta.env` / `process.env` para variáveis Vite.
+- **Vitest** + **jsdom**; **React Testing Library** + **@testing-library/user-event**.
+- Setup global: `src/setupVitest.js` — mocks de Firebase, `matchMedia`, `import.meta.env` / `process.env` para variáveis Vite (em testes, `import.meta.env.VITE_APP_VERSION` usa valor fixo `0.0.0-test` via `vite.config.js`).
 
 ### 4.2 Convenções
 
-- Testes em `tests/unit/**/*.test.{js,jsx}` (e padrões equivalentes em `src/` se existirem).
-- Cobertura coletada de `src/components/**` e `src/utils/**` com exclusões definidas em `jest.config.cjs` (alguns componentes estão excluídos da cobertura — manter coerência ao adicionar arquivos).
+- Testes colocados junto ao código-fonte: `src/**/*.test.{js,jsx}`.
+- Cobertura coletada de `src/components/**`, `src/utils/**` e `src/main.jsx` com exclusões definidas em `vite.config.js` → `test.coverage` (alguns componentes estão excluídos da cobertura — manter coerência ao adicionar arquivos).
 - **Limiares globais:** statements/lines/functions **≥ 95%** (branches comentados no config).
 
 ### 4.3 Ao mudar regras de ranking
 
 1. Atualizar **`calculations.js`**.
-2. Atualizar ou adicionar testes em **`tests/unit/utils/calculations.test.js`** (e integração em **`tests/unit/App.test.jsx`** se o fluxo mudar).
+2. Atualizar ou adicionar testes em **`src/utils/calculations.test.js`** (e integração em **`src/App.test.jsx`** se o fluxo mudar).
 3. Atualizar **README** / exemplos se o comportamento visível ou documentado mudar.
 
 ---
@@ -121,7 +121,7 @@ Critérios, **nesta ordem**:
 
 - Workflow GitHub Actions em `.github/workflows/test.yml` — alinhar comandos com `npm run test:ci` e artefatos esperados (coverage, junit se aplicável).
 - **Tags de release:** `.github/workflows/release-tag.yml` corre em **push** a `master`: cria a anotação `v{version}` a partir de `package.json` se essa tag ainda não existir no remoto. Antes de mergear para `master`, atualizar a versão em `package.json` (e lockfile se aplicável).
-- Frontend tipicamente em **Netlify**; variáveis `VITE_*` para Firebase. A versão no rodapé usa **`import.meta.env.VITE_APP_VERSION`**, injetada no build em `vite.config.js` (`define`) a partir de `package.json`. No Jest, `tests/babel-plugin-import-meta-env-jest.cjs` reescreve essa expressão para o mock em `setupTests.js`.
+- Frontend tipicamente em **Netlify**; variáveis `VITE_*` para Firebase. A versão no rodapé usa **`import.meta.env.VITE_APP_VERSION`**, injetada no build em `vite.config.js` (`define`) a partir de `package.json`; em **`vitest run`**, o mesmo `define` usa `0.0.0-test` para asserções estáveis no `AppFooter`.
 - **PWA:** `vite-plugin-pwa` com `registerType: 'autoUpdate'` — o browser obtém um novo service worker após deploys; tráfego Firebase/Google APIs usa `NetworkOnly` para não servir dados em cache.
 
 ---

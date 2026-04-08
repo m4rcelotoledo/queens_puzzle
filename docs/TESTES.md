@@ -2,7 +2,7 @@
 
 ## 📋 Visão Geral
 
-Este documento descreve a implementação de testes unitários para o projeto **Queens Puzzle Ranking**, seguindo a **Proposta 1** com Jest + React Testing Library.
+Este documento descreve a implementação de testes unitários para o projeto **Queens Puzzle Ranking**, com **Vitest** + **jsdom** + **React Testing Library** (testes colocados junto ao código em `src/`).
 
 ## 🎯 Objetivos dos Testes
 
@@ -14,36 +14,37 @@ Este documento descreve a implementação de testes unitários para o projeto **
 - ✅ **Prevenção de Erros**: Testes específicos para evitar regressões
 
 ### Cobertura Alcançada
-- **186 testes** implementados (atualizado)
-- **9 suites de teste** organizadas
-- **Cobertura mínima**: 85% (branches), 100% (functions), 100% (lines), 95% (statements)
-- **Cobertura atual**: 96.24% (statements), 91.53% (branches), 98.55% (functions), 96.93% (lines)
-- **Todos os testes passando**: 186/186 (100% de sucesso)
+- **229 testes** em **20 ficheiros** (referência ao estado atual do repositório)
+- **Limiares em `vite.config.js` (`test.coverage.thresholds`)**: ≥95% em statements, lines e functions (branches não entram no limiar global)
+- **Cobertura típica** (exemplo de execução local): ~99% statements, ~93% branches, 100% functions, 100% lines no conjunto reportado
+- **Todos os testes passando**: 229/229 (100% de sucesso) quando `npm run test:ci` está verde
 
 ## 🏗 Estrutura dos Testes
 
 ### Organização dos Arquivos
+Os testes ficam **ao lado** do código que exercitam, padrão `*.test.{js,jsx}` (ou `*.spec.*`):
+
 ```
-tests/
-├── unit/
-│   ├── App.test.jsx         # Shell / integração com mocks (espelha src/App.jsx na raiz de src)
-│   ├── main.test.jsx        # Bootstrap (entry)
-│   ├── components/          # Testes de componentes em src/components/
-│   │   ├── TimeInputForm.test.jsx
-│   │   ├── PlayerStatsPage.test.jsx
-│   │   └── DarkModeToggle.test.jsx
-│   ├── utils/               # Testes de funções utilitárias
-│   │   └── calculations.test.js
-│   └── hooks/               # Testes de hooks customizados (futuro)
-├── __mocks__/               # Mocks globais
-│   └── fileMock.js
+src/
+├── App.test.jsx
+├── main.test.jsx
+├── setupVitest.js              # setup global (mocks Firebase, matchMedia, etc.)
+├── components/
+│   ├── *.jsx
+│   └── *.test.jsx
+├── hooks/
+│   ├── *.js
+│   └── *.test.js
+└── utils/
+    ├── *.js
+    └── *.test.js
 ```
 
 ### Configuração
-- **Jest**: Framework de testes
+- **Vitest**: runner de testes (Vite)
 - **React Testing Library**: Biblioteca para testar componentes
 - **jsdom**: Ambiente DOM para testes
-- **Babel**: Suporte a JSX e ES6+
+- **@vitest/coverage-v8**: cobertura
 
 ## 🧪 Testes Implementados
 
@@ -143,15 +144,15 @@ debugDate('2024-01-01T12:00:00Z');
 ```
 
 ### Resultado Final
-- **Todos os 186 testes passando** ✅
-- **Cobertura de código: 96.24%** ✅
+- **Todos os testes passando** ✅
+- **Cobertura dentro dos limiares** ✅
 - **Testes funcionando tanto localmente quanto no CI** ✅
 - **Problemas de timezone resolvidos** ✅
 - **Testes duplicados removidos** ✅
 
 ---
 
-### 1. App principal (`tests/unit/App.test.jsx`)
+### 1. App principal (`src/App.test.jsx`)
 
 Testa o shell da aplicação com mock de `src/App.jsx` (o arquivo-fonte fica na raiz de `src/`, não em `components/`).
 
@@ -191,7 +192,7 @@ test('deve simular cenário real do App com parâmetros corretos', () => {
 });
 ```
 
-### 2. Utilitários de Cálculo (`calculations.test.js`)
+### 2. Utilitários de Cálculo (`src/utils/calculations.test.js`)
 
 #### Funções Testadas
 - `calculatePlayerStats()`: Cálculo de estatísticas por jogador
@@ -293,65 +294,26 @@ test('deve chamar setIsDarkMode quando clicado', async () => {
 
 ## 🔧 Configuração Técnica
 
-### Dependências de Teste
-```json
-{
-  "jest": "^30.0.5",
-  "@testing-library/react": "^16.3.0",
-  "@testing-library/jest-dom": "^6.6.3",
-  "@testing-library/user-event": "^14.6.1",
-  "jest-environment-jsdom": "^30.0.5"
-}
-```
+### Dependências de Teste (ver `package.json`)
+Principais: `vitest`, `@vitest/coverage-v8`, `jsdom`, `@testing-library/react`, `@testing-library/jest-dom`, `@testing-library/user-event`.
 
-### Configuração Jest (`jest.config.cjs`)
+### Configuração Vitest (`vite.config.js` → `test`)
+- `environment: 'jsdom'`, `setupFiles: ['./src/setupVitest.js']`
+- `include: ['src/**/*.{test,spec}.{js,jsx}']`
+- Cobertura v8 (`test.coverage.*`), reporters `text` + `lcov` + junit em `./coverage/junit.xml`
+- Alias `@` → `src`; em `VITEST`, `import.meta.env.VITE_APP_VERSION` é definido como `0.0.0-test` para asserções estáveis (ex.: rodapé)
+
+### Setup de Testes (`src/setupVitest.js`)
 ```javascript
-module.exports = {
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'],
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
-      '<rootDir>/src/__mocks__/fileMock.js',
-  },
-  transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
-  },
-  collectCoverageFrom: [
-    'src/components/**/*.{js,jsx}',
-    'src/utils/**/*.{js,jsx}',
-    '!src/components/**/*.test.{js,jsx}',
-    '!src/utils/**/*.test.{js,jsx}',
-  ],
-  coverageThreshold: {
-    global: {
-      branches: 85,
-      functions: 100,
-      lines: 100,
-      statements: 95,
-    },
-  },
-};
-```
+import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 
-### Setup de Testes (`src/setupTests.js`)
-```javascript
-import '@testing-library/jest-dom';
-
-// Mocks do Firebase
-jest.mock('firebase/app', () => ({
-  initializeApp: jest.fn(() => ({})),
+vi.mock('firebase/app', () => ({
+  initializeApp: vi.fn(() => ({})),
+  getApps: vi.fn(() => []),
+  getApp: vi.fn(() => ({})),
 }));
-
-// Mocks de localStorage
-const localStorageMock = {
-  getItem: jest.fn(),
-  setItem: jest.fn(),
-  removeItem: jest.fn(),
-  clear: jest.fn(),
-};
-global.localStorage = localStorageMock;
+// ... demais mocks Firebase, matchMedia, etc.
 ```
 
 ## 🚀 Execução dos Testes
@@ -373,53 +335,57 @@ npm run test:ci
 
 ### Saída de Exemplo
 ```
-Test Suites: 5 passed, 5 total
-Tests:       77 passed, 77 total
-Snapshots:   0 total
-Time:        1.254 s
+ RUN  v4.x /path/to/queens_puzzle
+      Coverage enabled with v8
+
+ ✓ src/utils/calculations.test.js (68 tests)
+ ...
+ Test Files  20 passed (20)
+      Tests  229 passed (229)
 ```
 
 ## 🔄 CI/CD Pipeline
 
 ### GitHub Actions (`.github/workflows/test.yml`)
 ```yaml
-name: Testes Unitários
+name: Unit Tests
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [master, develop]
   pull_request:
-    branches: [ main, master ]
+    branches: [master]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
-
+        node-version: [24.x]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-    - run: npm ci
-    - run: npm run test:ci
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - run: npm ci
+      - run: npm run test:ci
+      # Codecov opcional; artefatos em coverage/lcov.info e coverage/junit.xml
 ```
 
 ### Execução Automática
-- ✅ **Push para main/master**: Executa testes automaticamente
-- ✅ **Pull Requests**: Validação antes do merge
-- ✅ **Múltiplas versões Node.js**: 18.x e 20.x
-- ✅ **Cache de dependências**: Otimização de performance
+- ✅ **Push para `master` / `develop`**: Executa testes
+- ✅ **Pull Requests** para `master`: Validação antes do merge
+- ✅ **Node.js 24.x** (alinhado a `engines` em `package.json`)
 
 ## 📊 Métricas de Qualidade
 
 ### Cobertura de Código
+Valores exatos variam por alterações no código; o relatório de texto é gerado por `vitest run --coverage`. Exemplo de agregado:
 ```
------------------------|---------|----------|---------|---------|-------------------
-File                   | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
------------------------|---------|----------|---------|---------|-------------------
-All files              |    98.5 |    98.2  |   100   |   98.8  |
- src/utils             |   100   |    100   |     100 |     100 |
- src/components        |    98.2 |    97.8  |   100   |    98.5 |
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines |
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   ~99   |    ~93   |    100  |    100  |
 ```
 
 ### Componentes com 100% de Cobertura
@@ -473,16 +439,15 @@ test('deve retornar string vazia para data inválida', () => {
 ```
 
 ### Melhorias na Configuração
-- ✅ **Correção do Jest**: `moduleNameMapping` → `moduleNameMapper`
-- ✅ **Cobertura Otimizada**: Foco em `src/components` e `src/utils`
-- ✅ **Thresholds Ajustados**: 85% branches, 100% functions/lines, 95% statements
-- ✅ **Cache no CI**: Otimização de performance
+- ✅ **Vitest** integrado ao Vite (sem Babel dedicado só para testes)
+- ✅ **Cobertura**: `src/components`, `src/utils`, `src/main.jsx` com exclusões em `vite.config.js`
+- ✅ **Limiares globais**: statements/lines/functions ≥95%
+- ✅ **Cache no CI**: `npm` cache em `actions/setup-node`
 
 ### Resultados Atuais
-- **77 testes passando** (100% de sucesso)
-- **Cobertura 98%+** em todas as métricas
-- **Zero warnings** na execução
-- **CI/CD otimizado** com cache
+- **229 testes** em **20 ficheiros** (100% de sucesso quando `npm run test:ci` passa)
+- **Cobertura** dentro dos limiares definidos no projeto
+- **CI/CD** com Node 24.x
 
 ## 🎯 Próximos Passos
 
