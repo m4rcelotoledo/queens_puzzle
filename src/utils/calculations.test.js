@@ -6,7 +6,7 @@ import {
   validateTimes,
   getWeekRange,
   getMonthName
-} from '../../../src/utils/calculations';
+} from './calculations';
 
 describe('calculatePlayerStats', () => {
   const mockScores = {
