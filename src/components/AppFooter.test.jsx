@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import AppFooter from '../../../src/components/AppFooter';
+import AppFooter from './AppFooter';
 
 describe('AppFooter', () => {
   it('displays version from env with v prefix', () => {
