@@ -2,11 +2,11 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import PlayerSetupModal from '../../../src/components/PlayerSetupModal';
+import PlayerSetupModal from './PlayerSetupModal';
 
 describe('PlayerSetupModal', () => {
   it('renders title, helper text and three required name fields', () => {
-    const onSetupComplete = jest.fn();
+    const onSetupComplete = vi.fn();
     render(<PlayerSetupModal onSetupComplete={onSetupComplete} />);
 
     expect(screen.getByRole('heading', { name: /configure os jogadores/i })).toBeInTheDocument();
@@ -21,7 +21,7 @@ describe('PlayerSetupModal', () => {
 
   it('calls onSetupComplete with trimmed names when all fields are filled', async () => {
     const user = userEvent.setup();
-    const onSetupComplete = jest.fn();
+    const onSetupComplete = vi.fn();
     render(<PlayerSetupModal onSetupComplete={onSetupComplete} />);
 
     await user.type(screen.getByPlaceholderText('Nome do Jogador 1'), '  Ana  ');
@@ -36,7 +36,7 @@ describe('PlayerSetupModal', () => {
 
   it('does not call onSetupComplete when any field is empty', async () => {
     const user = userEvent.setup();
-    const onSetupComplete = jest.fn();
+    const onSetupComplete = vi.fn();
     render(<PlayerSetupModal onSetupComplete={onSetupComplete} />);
 
     await user.type(screen.getByPlaceholderText('Nome do Jogador 1'), 'Só um');
@@ -47,7 +47,7 @@ describe('PlayerSetupModal', () => {
 
   it('shows validation error when a name has fewer than 2 characters', async () => {
     const user = userEvent.setup();
-    const onSetupComplete = jest.fn();
+    const onSetupComplete = vi.fn();
     render(<PlayerSetupModal onSetupComplete={onSetupComplete} />);
 
     const p1 = screen.getByPlaceholderText('Nome do Jogador 1');
@@ -65,7 +65,7 @@ describe('PlayerSetupModal', () => {
 
   it('shows validation error when a name exceeds 20 characters', async () => {
     const user = userEvent.setup();
-    const onSetupComplete = jest.fn();
+    const onSetupComplete = vi.fn();
     render(<PlayerSetupModal onSetupComplete={onSetupComplete} />);
 
     const longName = 'a'.repeat(21);
@@ -82,7 +82,7 @@ describe('PlayerSetupModal', () => {
 
   it('does not submit when all names are empty', async () => {
     const user = userEvent.setup();
-    const onSetupComplete = jest.fn();
+    const onSetupComplete = vi.fn();
     render(<PlayerSetupModal onSetupComplete={onSetupComplete} />);
 
     await user.click(screen.getByRole('button', { name: /salvar jogadores/i }));
