@@ -1,4 +1,4 @@
-import { scheduleIdleTask } from '../../../src/utils/scheduleIdleTask';
+import { scheduleIdleTask } from './scheduleIdleTask';
 
 describe('scheduleIdleTask', () => {
   const originalRIC = global.window.requestIdleCallback;
@@ -12,11 +12,11 @@ describe('scheduleIdleTask', () => {
       delete global.window.requestIdleCallback;
     }
     global.setTimeout = originalST;
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
-  it('uses requestIdleCallback when available', (done) => {
-    const fn = jest.fn(() => done());
+  it('uses requestIdleCallback when available', () => {
+    const fn = vi.fn();
     global.window.requestIdleCallback = (cb) => {
       cb({ didTimeout: false, timeRemaining: () => 5 });
     };
@@ -24,13 +24,13 @@ describe('scheduleIdleTask', () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to setTimeout when requestIdleCallback is missing', (done) => {
-    jest.useFakeTimers();
+  it('falls back to setTimeout when requestIdleCallback is missing', () => {
+    vi.useFakeTimers();
     delete global.window.requestIdleCallback;
-    const fn = jest.fn(() => done());
+    const fn = vi.fn();
     scheduleIdleTask(fn);
     expect(fn).not.toHaveBeenCalled();
-    jest.advanceTimersByTime(2);
+    vi.advanceTimersByTime(2);
     expect(fn).toHaveBeenCalledTimes(1);
   });
 });
