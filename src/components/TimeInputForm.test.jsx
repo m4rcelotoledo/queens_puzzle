@@ -1,20 +1,20 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import TimeInputForm from '../../../src/components/TimeInputForm';
+import TimeInputForm from './TimeInputForm';
 
 describe('TimeInputForm', () => {
   const defaultProps = {
     players: ['João', 'Maria', 'Pedro'],
     isSunday: false,
     times: {},
-    handleTimeChange: jest.fn(),
-    handleSaveScore: jest.fn(),
-    setTimes: jest.fn(),
+    handleTimeChange: vi.fn(),
+    handleSaveScore: vi.fn(),
+    setTimes: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('should render fields for all players', () => {
