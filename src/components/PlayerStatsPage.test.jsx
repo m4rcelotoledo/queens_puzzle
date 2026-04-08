@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import PlayerStatsPage from '../../../src/components/PlayerStatsPage';
+import PlayerStatsPage from './PlayerStatsPage';
 
 // Recharts mock
-jest.mock('recharts', () => ({
+vi.mock('recharts', () => ({
   LineChart: ({ children }) => <div data-testid="line-chart">{children}</div>,
   Line: () => <div data-testid="line" />,
   XAxis: () => <div data-testid="x-axis" />,
@@ -32,11 +32,11 @@ describe('PlayerStatsPage', () => {
 
   const defaultProps = {
     stats: mockStats,
-    onBack: jest.fn(),
+    onBack: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('renders player stats correctly', () => {
