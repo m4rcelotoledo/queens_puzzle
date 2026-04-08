@@ -1,22 +1,22 @@
 import { renderHook, act } from '@testing-library/react';
-import { useTheme } from '../../../src/hooks/useTheme';
+import { useTheme } from './useTheme';
 
 describe('useTheme', () => {
   let storage;
 
   beforeEach(() => {
     storage = {};
-    jest.spyOn(Storage.prototype, 'getItem').mockImplementation((key) =>
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) =>
       Object.prototype.hasOwnProperty.call(storage, key) ? storage[key] : null
     );
-    jest.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => {
       storage[key] = value;
     });
     document.documentElement.classList.remove('dark');
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   test('uses localStorage when darkMode is cached', () => {
@@ -27,14 +27,14 @@ describe('useTheme', () => {
 
   test('falls back to prefers-color-scheme when nothing is cached', () => {
     const originalMatchMedia = window.matchMedia;
-    window.matchMedia = jest.fn().mockImplementation((query) => ({
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: query === '(prefers-color-scheme: dark)',
       media: query,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      dispatchEvent: jest.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
     }));
     try {
       const { result } = renderHook(() => useTheme());
@@ -46,17 +46,17 @@ describe('useTheme', () => {
 
   test('falls back to matchMedia when localStorage getItem throws (e.g. privacy mode)', () => {
     const originalMatchMedia = window.matchMedia;
-    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
       throw new DOMException('denied');
     });
-    window.matchMedia = jest.fn().mockImplementation((query) => ({
+    window.matchMedia = vi.fn().mockImplementation((query) => ({
       matches: query === '(prefers-color-scheme: dark)',
       media: query,
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      dispatchEvent: jest.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
     }));
     try {
       const { result } = renderHook(() => useTheme());
