@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import AppBranding from '../../../src/components/AppBranding';
+import AppBranding from './AppBranding';
 
 describe('AppBranding', () => {
   it('renders title and tagline', () => {
