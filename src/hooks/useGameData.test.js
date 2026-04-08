@@ -1,35 +1,35 @@
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { toast } from 'sonner';
-import { useGameData } from '../../../src/hooks/useGameData';
+import { useGameData } from './useGameData';
 
-jest.mock('sonner', () => ({
+vi.mock('sonner', () => ({
   toast: {
-    error: jest.fn(),
+    error: vi.fn(),
   },
 }));
 
-const mockOnSnapshot = jest.fn();
+const mockOnSnapshot = vi.fn();
 
-jest.mock('firebase/firestore', () => ({
-  doc: jest.fn(() => ({ path: 'artifacts/queens-puzzle/config/players' })),
-  collection: jest.fn(() => ({ path: 'scores' })),
-  query: jest.fn((q) => q),
+vi.mock('firebase/firestore', () => ({
+  doc: vi.fn(() => ({ path: 'artifacts/queens-puzzle/config/players' })),
+  collection: vi.fn(() => ({ path: 'scores' })),
+  query: vi.fn((q) => q),
   onSnapshot: (...args) => mockOnSnapshot(...args),
 }));
 
 describe('useGameData', () => {
-  const setAppStatus = jest.fn();
+  const setAppStatus = vi.fn();
   const db = {};
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     let snapshotCall = 0;
     mockOnSnapshot.mockImplementation((refOrQuery, onNext, onError) => {
       snapshotCall += 1;
       if (snapshotCall === 1) {
-        return jest.fn();
+        return vi.fn();
       }
-      return jest.fn();
+      return vi.fn();
     });
   });
 
@@ -40,8 +40,8 @@ describe('useGameData', () => {
   });
 
   test('sets READY when players document exists', async () => {
-    const unsubPlayers = jest.fn();
-    const unsubScores = jest.fn();
+    const unsubPlayers = vi.fn();
+    const unsubScores = vi.fn();
     let playersOnNext;
 
     mockOnSnapshot.mockImplementation((refOrQuery, onNext, onError) => {
@@ -76,9 +76,9 @@ describe('useGameData', () => {
     mockOnSnapshot.mockImplementation((refOrQuery, onNext) => {
       if (!playersOnNext) {
         playersOnNext = onNext;
-        return jest.fn();
+        return vi.fn();
       }
-      return jest.fn();
+      return vi.fn();
     });
 
     renderHook(() => useGameData(db, 'LOADING_DATA', setAppStatus, false));
@@ -105,9 +105,9 @@ describe('useGameData', () => {
     mockOnSnapshot.mockImplementation((refOrQuery, onNext) => {
       if (!playersOnNext) {
         playersOnNext = onNext;
-        return jest.fn();
+        return vi.fn();
       }
-      return jest.fn();
+      return vi.fn();
     });
 
     renderHook(() => useGameData(db, 'LOADING_DATA', setAppStatus, true));
@@ -129,14 +129,14 @@ describe('useGameData', () => {
   });
 
   test('on players snapshot error shows toast and returns to LOGIN', async () => {
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let playersOnError;
     mockOnSnapshot.mockImplementation((refOrQuery, onNext, onError) => {
       if (onError && !playersOnError) {
         playersOnError = onError;
-        return jest.fn();
+        return vi.fn();
       }
-      return jest.fn();
+      return vi.fn();
     });
 
     renderHook(() => useGameData(db, 'LOADING_DATA', setAppStatus, true));
@@ -162,10 +162,10 @@ describe('useGameData', () => {
     mockOnSnapshot.mockImplementation((refOrQuery, onNext) => {
       call += 1;
       if (call === 1) {
-        return jest.fn();
+        return vi.fn();
       }
       scoresOnNext = onNext;
-      return jest.fn();
+      return vi.fn();
     });
 
     const { result } = renderHook(() => useGameData(db, 'LOADING_DATA', setAppStatus, true));
@@ -195,16 +195,16 @@ describe('useGameData', () => {
   });
 
   test('on scores snapshot error shows toast without forcing LOGIN', async () => {
-    const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const errSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     let call = 0;
     let scoresOnError;
     mockOnSnapshot.mockImplementation((refOrQuery, onNext, onError) => {
       call += 1;
       if (call === 1) {
-        return jest.fn();
+        return vi.fn();
       }
       scoresOnError = onError;
-      return jest.fn();
+      return vi.fn();
     });
 
     renderHook(() => useGameData(db, 'LOADING_DATA', setAppStatus, true));
