@@ -1,16 +1,16 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import DarkModeToggle from '../../../src/components/DarkModeToggle';
+import DarkModeToggle from './DarkModeToggle';
 
 describe('DarkModeToggle', () => {
   const defaultProps = {
     isDarkMode: false,
-    setIsDarkMode: jest.fn(),
+    setIsDarkMode: vi.fn(),
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   test('should render the toggle button', () => {
