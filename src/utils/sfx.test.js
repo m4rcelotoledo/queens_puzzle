@@ -1,4 +1,4 @@
-import { playClickSound, playSuccessSound, playFanfareSound, __resetSharedCtx } from '../../../src/utils/sfx';
+import { playClickSound, playSuccessSound, playFanfareSound, __resetSharedCtx } from './sfx';
 
 describe('sfx', () => {
   let mockOscillator;
@@ -8,30 +8,32 @@ describe('sfx', () => {
   beforeEach(() => {
     __resetSharedCtx();
     mockOscillator = {
-      connect: jest.fn(),
+      connect: vi.fn(),
       type: '',
       frequency: {
-        setValueAtTime: jest.fn(),
-        exponentialRampToValueAtTime: jest.fn(),
+        setValueAtTime: vi.fn(),
+        exponentialRampToValueAtTime: vi.fn(),
         value: 0,
       },
-      start: jest.fn(),
-      stop: jest.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
     };
     mockGain = {
-      connect: jest.fn(),
+      connect: vi.fn(),
       gain: {
-        setValueAtTime: jest.fn(),
-        linearRampToValueAtTime: jest.fn(),
+        setValueAtTime: vi.fn(),
+        linearRampToValueAtTime: vi.fn(),
       },
     };
     mockCtx = {
-      createOscillator: jest.fn(() => mockOscillator),
-      createGain: jest.fn(() => mockGain),
+      createOscillator: vi.fn(() => mockOscillator),
+      createGain: vi.fn(() => mockGain),
       destination: {},
       currentTime: 0,
     };
-    global.window.AudioContext = jest.fn(() => mockCtx);
+    global.window.AudioContext = vi.fn(function AudioContext() {
+      return mockCtx;
+    });
     global.window.webkitAudioContext = global.window.AudioContext;
   });
 
@@ -58,7 +60,7 @@ describe('sfx', () => {
   });
 
   test('swallows errors when AudioContext fails', () => {
-    global.window.AudioContext = jest.fn(() => {
+    global.window.AudioContext = vi.fn(function AudioContext() {
       throw new Error('not supported');
     });
     global.window.webkitAudioContext = global.window.AudioContext;
@@ -73,13 +75,13 @@ describe('sfx', () => {
 
   test('resumes AudioContext if it is in suspended state', () => {
     mockCtx.state = 'suspended';
-    mockCtx.resume = jest.fn();
+    mockCtx.resume = vi.fn();
     playClickSound();
     expect(mockCtx.resume).toHaveBeenCalled();
   });
 
   test('catches errors when AudioContext throws during play', () => {
-    mockCtx.createOscillator = jest.fn(() => {
+    mockCtx.createOscillator = vi.fn(() => {
       throw new Error('Oscillator failed');
     });
     expect(() => playClickSound()).not.toThrow();
