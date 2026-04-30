@@ -41,7 +41,7 @@
     "autoprefixer": "^10.4.27",
     "baseline-browser-mapping": "^2.10.16",
     "jsdom": "^29.0.2",
-    "postcss": "^8.5.9",
+    "postcss": "^8.5.12",
     "tailwindcss": "^4.2.2",
     "vite": "^8.0.7",
     "vite-plugin-pwa": "^1.2.0",
